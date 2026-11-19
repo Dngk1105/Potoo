@@ -46,8 +46,14 @@
 |---|---|---|
 | `docs/architecture.md` | Toàn cảnh, bảng "Gặp vấn đề thì đọc file nào" | Chỉ file này được link sang file thiết kế khác |
 | `docs/design/<vấn-đề>.md` | Một vấn đề thiết kế đã chốt | Vấn đề → Cách xử lý. Tự đứng được: chép lại vài câu ngữ cảnh thay vì link |
-| `docs/modules/<gói>/README.md` | Gói làm gì, sở hữu thư mục nào, cần gì từ gói khác | Bảng |
-| `docs/modules/<gói>/BUILD-TRACK.md` | Đầu việc theo mã checklist (`K0-09`...), trạng thái, ghi chú | `[ ]` chưa · `[~]` đang làm · `[x]` xong · `[!]` cần sửa lại |
+| `docs/modules/README.md` | Bảng mọi gói, module, người phụ trách | Thêm dòng khi tạo gói mới |
+| `docs/modules/_template/` | Khung để copy khi tạo gói hoặc module mới | |
+| `docs/modules/<tên>/README.md` | Gói làm gì, sở hữu thư mục nào, export gì qua `index.ts`, cần gì từ gói khác | Bảng |
+| `docs/modules/<tên>/BUILD-TRACK.md` | Trạng thái theo mã checklist, việc tiếp theo, nhật ký phiên, câu hỏi đang chờ | `[ ]` chưa · `[~]` đang làm · `[x]` xong · `[!]` cần sửa lại |
+| `docs/modules/<tên>/screens.md` | Màn hình: route, thành phần, sự kiện gọi gì, trạng thái lỗi | Chỉ khi module có màn |
+| `docs/modules/<tên>/api.md` | Route Handler: path, ai được gọi, ghi DB gì, mã lỗi | Chỉ khi module có Route Handler |
+
+File trong `docs/modules/` chỉ ghi việc, tiến độ và giao diện của module. Thiết kế mức hệ thống nằm trong `docs/design/`; module link tới, không chép lại.
 | `docs/glossary.yaml` | Thuật ngữ | |
 
 - Thêm file thiết kế mới thì thêm dòng vào bảng "Gặp vấn đề" trong `architecture.md`.

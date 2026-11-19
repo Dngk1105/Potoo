@@ -24,6 +24,10 @@ Mã checklist: `K0-01` đến `K1-07`. Người phụ trách: Dũng.
 | `supabase/config.toml`, `.env.example` | |
 | `AGENTS.md`, `CLAUDE.md`, `.claude/` | |
 
+## Export qua `index.ts`
+
+Gói này không có code module; không export gì.
+
 ## Cần từ ai
 
 | Cần | Từ | Để làm |

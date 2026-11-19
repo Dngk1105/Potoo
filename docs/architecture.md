@@ -9,7 +9,7 @@ trên điện thoại và laptop.
 | Lớp | Dùng | Việc |
 |---|---|---|
 | Web + API | Next.js App Router, TypeScript | Routing, Route Handler cho API đặc quyền |
-| Giao diện | Tailwind, shadcn/ui | Component, responsive |
+| Giao diện | Tailwind 4; thư viện component do Gói 5 chọn | Component, responsive |
 | State | Zustand (client), TanStack Query (server) | |
 | Backend | Supabase: Auth, Postgres, Storage, Realtime | Đăng nhập Email và Google, RLS, lưu ảnh, chỉnh chung live |
 | Video call | LiveKit Cloud; local dùng `livekit-server --dev` | Video booth |
@@ -37,7 +37,7 @@ trên điện thoại và laptop.
 | `app/` | Chỉ routing và Route Handler | `core/`, `modules/` qua `index.ts` |
 | `core/contracts/` | Port, plugin interface, FrameManifest, message realtime | Không import gì trong repo |
 | `core/adapters/` | `index.ts` chọn adapter của từng port bằng `.env`; `mock/`, `real/` chứa adapter | `core/contracts/`, `core/db/`, `core/config/` |
-| `core/ui/` | Component dùng chung (shadcn/ui) | `core/contracts/` |
+| `core/ui/` | Token, component dùng chung | `core/contracts/` |
 | `core/auth/` | Hàm `can()` | `core/contracts/` |
 | `core/config/` | Cấu hình, feature flag | `core/contracts/` |
 | `core/db/` | Supabase client, type sinh từ DB | `core/contracts/` |

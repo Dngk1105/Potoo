@@ -9,7 +9,14 @@ Luật riêng của Claude nằm trong `CLAUDE.md`.
 ## Đọc gì
 
 Không đọc hết `docs/`. Bắt đầu từ `docs/architecture.md`: toàn cảnh, rồi bảng "Gặp vấn đề thì đọc file nào".
-Việc của từng gói và tiến độ: `docs/modules/<gói>/`.
+
+## Theo dõi việc
+
+- Danh sách gói, module, người phụ trách: `docs/modules/README.md`.
+- Làm việc trong một gói hoặc module: đọc `docs/modules/<tên>/README.md` và `BUILD-TRACK.md` trước khi sửa.
+- Hết phiên: cập nhật `BUILD-TRACK.md` của gói đó theo mục "Cập nhật thế nào" trong file. Ghi người và agent, dán kết quả lệnh kiểm chứng.
+- Gói hoặc module mới: copy `docs/modules/_template/`, thêm một dòng vào `docs/modules/README.md`.
+- Chỉ sửa `BUILD-TRACK.md` của gói mình. Thấy gói khác lệch docs: báo người làm.
 
 ## Luật
 
@@ -22,14 +29,15 @@ Việc của từng gói và tiến độ: `docs/modules/<gói>/`.
 
 ## Viết comment, docs, chat
 
-| Việc | Đọc trước |
-|---|---|
+| Việc                                           | Đọc trước            |
+| ----------------------------------------------- | ------------------------ |
 | Docs (tiếng Việt, thuật ngữ tiếng Anh, 5C) | `docs/writing-docs.md` |
-| Thuật ngữ | `docs/glossary.yaml` |
-| Giọng văn tiếng Việt (chat, docs) | skill `photobooth-vn` |
+| Thuật ngữ                                     | `docs/glossary.yaml`   |
+| Giọng văn tiếng Việt (chat, docs)           | skill `photobooth-vn`  |
 
 - Chat với người làm: tiếng Việt, câu ngắn, thuật ngữ viết đúng `term` trong `docs/glossary.yaml`.
 - Comment trong code viết tiếng Anh.
+- Checklist tiến độ: [docs.google.com/spreadsheets/d/1vT9GY4fO8CvbNJsM6i5-yVfQ2SiD8umE0ywD-h5S3XU/edit?usp=sharing](https://docs.google.com/spreadsheets/d/1vT9GY4fO8CvbNJsM6i5-yVfQ2SiD8umE0ywD-h5S3XU/edit?usp=sharing)
 
 <!-- BEGIN:nextjs-agent-rules -->
 
