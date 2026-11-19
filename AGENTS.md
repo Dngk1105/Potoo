@@ -37,6 +37,7 @@ Không đọc hết `docs/`. Bắt đầu từ `docs/architecture.md`: toàn c�
 
 - Chat với người làm: tiếng Việt, câu ngắn, thuật ngữ viết đúng `term` trong `docs/glossary.yaml`.
 - Comment trong code viết tiếng Anh.
+- Repo: [github.com/Dngk1105/Potoo](https://github.com/Dngk1105/Potoo). Nhánh mặc định `dev`.
 - Checklist tiến độ: [docs.google.com/spreadsheets/d/1vT9GY4fO8CvbNJsM6i5-yVfQ2SiD8umE0ywD-h5S3XU/edit?usp=sharing](https://docs.google.com/spreadsheets/d/1vT9GY4fO8CvbNJsM6i5-yVfQ2SiD8umE0ywD-h5S3XU/edit?usp=sharing)
 
 <!-- BEGIN:nextjs-agent-rules -->

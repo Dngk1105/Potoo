@@ -26,7 +26,7 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 | K0-09 | Khởi tạo Next.js + TypeScript | [~] | `package.json`, `.nvmrc` | Node 24, npm, Next 16.4.6, TypeScript 6.0, ESLint 9 |
 | K0-10 | Cây thư mục `app/`, `core/`, `modules/`, `supabase/` | [~] | `docs/architecture.md` | 5 module: room, booth, studio, gallery, social |
 | K0-11 | ESLint, Prettier, boundaries | [~] | `eslint.config.mjs`, `.prettierrc.json` | Boundaries theo bảng Thư mục; thử 3 import sai đều bị chặn. Prettier bỏ qua `.md`, `.yaml` |
-| K0-12 | 3 nhánh, branch protection | [ ] | | Chờ tạo repo GitHub |
+| K0-12 | 3 nhánh, branch protection | [x] | `github.com/Dngk1105/Potoo` | Nhánh mặc định `dev` (kiểm bằng `git ls-remote --symref`). Ruleset: `main`, `staging` chặn xoá, chặn force push, bắt PR; `dev` chặn xoá, chặn force push (Dũng tạo trên web) |
 | K0-13 | Push khung, cả nhóm clone chạy được | [ ] | `README.md` | |
 
 ### Gói 1: Hạ tầng và CI/CD
@@ -46,7 +46,7 @@ Việc thiếu so với sheet: Google OAuth, webhook báo nhóm chat, job dọn 
 ## 2. Cần làm tiếp
 
 1. [ ] Cả nhóm review `docs/architecture.md` và `docs/design/` (K0-01 đến K0-08)
-2. [ ] K0-12: tạo repo GitHub, 3 nhánh, branch protection
+2. [ ] K0-13: viết `README.md` hướng dẫn clone và chạy; cả nhóm clone chạy được
 
 ## 3. Nhật ký phiên
 
