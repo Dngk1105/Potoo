@@ -34,7 +34,7 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 | Mã | Việc | Trạng thái | File | Ghi chú |
 |---|---|---|---|---|
 | K1-01 | Lefthook | [x] | `lefthook.yml`, `vitest.config.mts` | Pre-commit: Prettier file đã stage. Pre-push: lint, typecheck, format, test. Thêm Vitest 5 |
-| K1-02 | GitHub Actions CI | [ ] | `.github/workflows/` | Thêm test RLS (cần `supabase start` trong runner) |
+| K1-02 | GitHub Actions CI | [~] | `.github/workflows/ci.yml` | PR vào `dev`, `staging` và push lên `dev`: lint, typecheck, format, test, build. Chờ chạy xanh trên GitHub. Chưa có test RLS, `db diff`, báo nhóm chat (mục 4) |
 | K1-03 | Vercel | [ ] | | Biến preview chỉ gán nhánh `staging` |
 | K1-04 | Supabase staging và main | [ ] | `supabase/config.toml` | |
 | K1-05 | LiveKit Cloud | [ ] | | |
@@ -47,9 +47,22 @@ Việc thiếu so với sheet: Google OAuth, webhook báo nhóm chat, job dọn 
 
 1. [ ] Cả nhóm review `docs/architecture.md` và `docs/design/` (K0-01 đến K0-08)
 2. [ ] K0-13: 4 bạn còn lại clone và chạy theo `README.md`, báo lại kết quả
-3. [ ] K1-02: GitHub Actions CI
+3. [ ] K1-02: push `dev`, kiểm tra workflow CI chạy xanh trên GitHub
 
 ## 3. Nhật ký phiên
+
+### 2026-11-19: K1-02 GitHub Actions CI
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| `.github/workflows/ci.yml`: `actions/checkout@v7`, `actions/setup-node@v7` (Node theo `.nvmrc`, cache npm), `npm ci`, lint, typecheck, format, test, build | [x] |
+| Chạy xanh trên GitHub | [ ] |
+
+**Kiểm chứng:** Prettier đọc được file YAML. Input `node-version-file`, `cache` có trong `action.yml` của `setup-node@v7`. Các lệnh của workflow chạy ở local: qua.
+
+**Cần follow-up:** push `dev` rồi xem tab Actions.
 
 ### 2026-11-19: K1-01 Lefthook, Vitest
 
@@ -113,6 +126,9 @@ Việc thiếu so với sheet: Google OAuth, webhook báo nhóm chat, job dọn 
 | 2026-11-19 | Review docs thiết kế chung | Cả nhóm |
 | 2026-11-19 | Quyền admin GitHub, Vercel, Supabase, LiveKit Cloud, Google Cloud Console | Chủ tài khoản |
 | 2026-11-19 | Gói 2 đến Gói 5 tạo thư mục trong `docs/modules/` từ `_template/` | Người phụ trách từng gói |
+| 2026-11-19 | CI chạy test RLS: cần `supabase/config.toml` và test trong `tests/rls/` | Gói 2 |
+| 2026-11-19 | CI chạy `supabase db diff --linked`: cần project Supabase staging | K1-04 |
+| 2026-11-19 | CI báo lỗi vào nhóm chat: nhóm dùng chat nào, webhook URL | Cả nhóm |
 
 ## Cập nhật thế nào
 
