@@ -29,6 +29,8 @@ migration lỗi là cả nhóm hỏng.
 | main | `main` | Project `potoo-main` | LiveKit Cloud | Vercel production |
 
 - Hai project Supabase đặt ở region Singapore (`ap-southeast-1`), gói Free.
+- LiveKit Cloud có 2 project `potoo-staging`, `potoo-main`, gói Build, key riêng từng project. Gói Build không chọn được region.
+- LiveKit local: `npm run livekit` chạy image Docker `livekit/livekit-server` ở chế độ `--dev`, URL `ws://localhost:7880`, key `devkey` / secret `secret` (key mẫu công khai, chỉ dùng local). Tắt bằng `npm run livekit:stop`.
 - Supabase CLI cài qua `devDependencies` của npm, ghim đúng version; máy dev và CI chạy `npx supabase`.
 - `supabase/config.toml` đặt `project_id = "potoo"`: container và volume Docker local có tên theo key này, không theo tên thư mục clone.
 - Web local mở ở `http://localhost:3000`, không dùng `127.0.0.1`: trình duyệt lưu cookie đăng nhập riêng cho từng host.
@@ -78,6 +80,16 @@ dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
 **Cách xử lý:**
 
 - `.env.example` liệt kê đủ tên biến, không có giá trị. File `.env.local` không commit.
+
+| Biến | Phía | Ghi chú |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Trình duyệt, server | |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Trình duyệt, server | Key `sb_publishable_...` |
+| `SUPABASE_SECRET_KEY` | Server | Key `sb_secret_...`, bỏ qua RLS |
+| `NEXT_PUBLIC_LIVEKIT_URL` | Trình duyệt | URL `wss://` của project LiveKit |
+| `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` | Server | Route Handler ký token vào room |
+| `SHOT_RETENTION_HOURS` | Server, job dọn shot | |
+
 - Chỉ URL và key public của Supabase được có prefix `NEXT_PUBLIC_`. Key secret của Supabase và `LIVEKIT_API_SECRET` chỉ dùng trong Route Handler.
 - Secret của staging và main lưu trong GitHub Actions secrets và Vercel, tách theo môi trường.
 - Google OAuth: mỗi môi trường khai báo redirect URL riêng trong Google Cloud Console và Supabase Auth.

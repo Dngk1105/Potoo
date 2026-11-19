@@ -37,9 +37,9 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 | K1-02 | GitHub Actions CI | [x] | `.github/workflows/ci.yml` | PR vào `dev`, `staging` và push lên `dev`: lint, typecheck, format, test, build. Lần chạy đầu xanh. Chưa có test RLS, `db diff`, báo nhóm chat (mục 4) |
 | K1-03 | Vercel | [ ] | | Biến preview chỉ gán nhánh `staging` |
 | K1-04 | Supabase staging và main | [x] | `supabase/config.toml` | `potoo-staging`, `potoo-main`, Singapore. CLI 3.2.0 qua npm. `project_id = "potoo"` |
-| K1-05 | LiveKit Cloud | [ ] | | |
+| K1-05 | LiveKit Cloud | [x] | `package.json` (`npm run livekit`) | 2 project Cloud gói Build; local chạy image Docker 1.13.11 `--dev`. Bỏ prefix tên room |
 | K1-06 | Migration tự động | [ ] | `.github/workflows/` | Lên staging và main |
-| K1-07 | Secret, `.env.example` | [ ] | `.env.example` | |
+| K1-07 | Secret, `.env.example` | [~] | `.env.example` | Có 7 biến Supabase, LiveKit, `SHOT_RETENTION_HOURS`. Chưa nạp secret |
 
 Việc thiếu so với sheet: Google OAuth, webhook báo nhóm chat, job dọn shot và giữ project Supabase không bị tạm dừng.
 
@@ -47,9 +47,23 @@ Việc thiếu so với sheet: Google OAuth, webhook báo nhóm chat, job dọn 
 
 1. [ ] Cả nhóm review `docs/architecture.md` và `docs/design/` (K0-01 đến K0-08)
 2. [ ] K0-13: 4 bạn còn lại clone và chạy theo `README.md`, báo lại kết quả
-3. [ ] K1-05: LiveKit Cloud cho staging và main
+3. [ ] Google OAuth cho local, staging, main
 
 ## 3. Nhật ký phiên
+
+### 2026-11-20: K1-05 LiveKit, bắt đầu K1-07
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| LiveKit Cloud: 2 project gói Build, staging `wss://potoo-b619gqn3.livekit.cloud`, main `wss://potoo-main-sr9wj8yb.livekit.cloud` (Dũng tạo trên web) | [x] |
+| Local: `npm run livekit` chạy `livekit/livekit-server:v1.13.11 --dev`, label `com.docker.compose.project=potoo`; `npm run livekit:stop` | [x] |
+| `.env.example`: tên biến Supabase (key `sb_publishable_`, `sb_secret_`), LiveKit, `SHOT_RETENTION_HOURS`; bảng biến trong `environments.md` mục 5 | [x] |
+
+**Kiểm chứng:** Local: `GET :7880` trả 200; `RoomServiceClient.createRoom` với `devkey` trả 200; 2 tab trình duyệt vào cùng room, publish video canvas, mỗi tab `subscribed video` của tab kia, ICE pair `succeeded`. Cloud: server test ký token bằng key của từng project (secret không in ra): staging và main đều `API OK`; 2 tab mỗi project `connected`, `subscribed video`, ICE pair `succeeded`. File chứa key đã xoá sau test. `npm run format:check`: qua.
+
+**Cần follow-up:** project staging trên LiveKit đang tên `potoo`, đổi thành `potoo-staging`. Nạp key lên GitHub, Vercel (K1-07).
 
 ### 2026-11-20: K1-04 Supabase staging và main
 

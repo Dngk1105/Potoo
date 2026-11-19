@@ -13,7 +13,9 @@
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "livekit": "docker run -d --rm --name potoo-livekit --label com.docker.compose.project=potoo -p 7880:7880 -p 7881:7881 -p 7882:7882/udp livekit/livekit-server:v1.13.11 --dev --bind 0.0.0.0 --node-ip 127.0.0.1",
+    "livekit:stop": "docker stop potoo-livekit"
   },
   "dependencies": {
     "next": "16.4.6",
