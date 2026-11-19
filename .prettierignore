@@ -1,0 +1,10 @@
+.next
+out
+build
+node_modules
+package-lock.json
+next-env.d.ts
+supabase/.temp
+# Markdown and YAML docs: tables are hand-aligned for Vietnamese text; Prettier padding breaks them.
+*.md
+*.yaml

@@ -52,7 +52,8 @@ trên điện thoại và laptop.
 | `modules/gallery/` | Thư viện strip của user, upload asset |
 | `modules/social/` | Bạn bè, reaction, comment, chia sẻ link |
 
-- Mỗi module và mỗi thư mục trong `core/` export ra ngoài qua `index.ts`. `eslint-plugin-boundaries` chặn import sâu vào thư mục khác.
+- Mỗi module và mỗi thư mục trong `core/` export ra ngoài qua `index.ts`. `eslint-plugin-boundaries` chặn import sâu vào thư mục khác, và chặn import không có trong cột "Được import". Luật nằm trong `eslint.config.mjs`; đổi bảng này thì đổi luật cùng commit.
+- Prettier format code (`npm run format`). File `.md`, `.yaml` không qua Prettier: Prettier dàn lại bảng làm lệch cột chữ tiếng Việt.
 - LiveKit, webcam, Auth, Storage: gọi qua port. Đọc ghi bảng: hàm truy vấn trong module, dùng client của `core/db/`.
 
 ## Kiểm tra quyền ở 3 lớp
