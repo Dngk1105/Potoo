@@ -1,0 +1,99 @@
+# Từ điển thuật ngữ Phô tô bút.
+#
+# Luật:
+# - `term` viết y nguyên trong code, comment, docs và chat. Không dịch.
+# - `avoid` là cách gọi không dùng nữa.
+# - Thêm thuật ngữ mới vào đây trước khi dùng trong docs.
+# - Chỉ ghi thuật ngữ đã chốt.
+
+terms:
+  # Phòng và buổi chụp
+  - term: room
+    meaning: 'phòng chụp; một host và các member, vào bằng link, QR hoặc PIN.'
+    avoid: [phòng chờ (khi nói về cả phòng)]
+  - term: host
+    meaning: 'người điều khiển room: lock, kick, settings, chọn frame, xếp slot.'
+    avoid: [chủ host, chủ phòng]
+  - term: member
+    meaning: 'người trong room không phải host.'
+  - term: lobby
+    meaning: 'màn chờ trước khi chụp: bật/tắt cam, báo READY.'
+    avoid: [phòng chờ]
+  - term: session
+    meaning: 'một buổi chụp trong room; một room có thể có nhiều session.'
+    avoid: [buổi chụp (trong docs kỹ thuật)]
+  - term: round
+    meaning: 'một lượt chụp trong session; mỗi member chụp 1 shot mỗi round.'
+    avoid: [lượt]
+  - term: countdown
+    meaning: 'đếm ngược trước khi chụp một round.'
+
+  # Ảnh
+  - term: shot
+    meaning: 'ảnh gốc một member chụp trong một round.'
+    avoid: [ảnh thô]
+  - term: frame
+    meaning: 'khung ảnh: kích thước canvas, ảnh viền, danh sách slot. Mô tả bằng FrameManifest.'
+    avoid: [khung]
+  - term: slot
+    meaning: 'một ô trong frame để đặt shot.'
+    avoid: [ô]
+  - term: strip
+    meaning: 'ảnh thành phẩm: frame đã ghép shot, sticker, text. Loại shared hoặc personal.'
+    avoid: [dải ảnh]
+
+  - term: owner
+    meaning: 'người có mặt trong strip (dòng trong strip_owners), hoặc người upload asset.'
+    avoid: [chủ ảnh]
+  - term: viewer
+    meaning: 'người xem được strip theo visibility của mọi owner.'
+  - term: visibility
+    meaning: 'mức chia sẻ: strip có private, session, friends, link; asset có private, public.'
+    avoid: [mức hiển thị]
+  - term: asset
+    meaning: 'file user hoặc hệ thống cung cấp: frame, sticker, filter, accessory.'
+  - term: sticker
+    meaning: 'ảnh PNG dán lên strip trong studio.'
+  - term: filter
+    meaning: 'bảng màu LUT PNG 512×512 áp lên video hoặc strip.'
+  - term: accessory
+    meaning: 'ảnh PNG gắn theo khuôn mặt trong booth.'
+    avoid: [phụ kiện]
+  - term: LUT
+    meaning: 'lookup table màu; filter lưu dạng PNG 512×512.'
+
+  # Khu chức năng
+  - term: booth
+    meaning: 'khu chụp: video call, effect realtime, countdown, chụp.'
+  - term: studio
+    meaning: 'khu chỉnh strip: chỉnh riêng và chỉnh chung live.'
+    avoid: [tab chỉnh]
+  - term: gallery
+    meaning: 'thư viện strip của user, và thư viện filter, sticker, phụ kiện.'
+
+  # Kiến trúc code
+  - term: port
+    meaning: 'interface trong core/contracts/ mà UI gọi; không gọi thẳng SDK.'
+  - term: adapter
+    meaning: 'bản cài đặt của một port: mock (offline) hoặc real (Supabase, LiveKit, webcam).'
+  - term: mock
+    meaning: 'adapter chạy offline, không cần mạng hay webcam thật.'
+  - term: RoomBus
+    meaning: 'port gửi và nhận event tức thời trong room (START_SHOT, READY, SHOT_UPLOADED); bản real dùng data packet của LiveKit.'
+    avoid: [bus phòng]
+  - term: participant attribute
+    meaning: 'cặp key-value của một participant trong LiveKit; chỉ server đổi. Attribute `role` giữ host hoặc member.'
+  - term: effect
+    meaning: 'plugin xử lý từng frame video của camera: tách nền, filter, phụ kiện.'
+  - term: StudioTool
+    meaning: 'plugin công cụ trong studio: chỉnh màu, sticker, text.'
+
+  # Hạ tầng
+  - term: RLS
+    meaning: 'Row Level Security của Postgres; lớp chặn quyền ở database.'
+  - term: migration
+    meaning: 'file SQL trong supabase/migrations/; đã push thì không sửa.'
+  - term: preview
+    meaning: 'bản deploy Vercel của nhánh staging, nối project Supabase staging.'
+  - term: production
+    meaning: 'bản deploy Vercel của nhánh main, dùng để bảo vệ.'
