@@ -34,7 +34,7 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 | Mã | Việc | Trạng thái | File | Ghi chú |
 |---|---|---|---|---|
 | K1-01 | Lefthook | [x] | `lefthook.yml`, `vitest.config.mts` | Pre-commit: Prettier file đã stage. Pre-push: lint, typecheck, format, test. Thêm Vitest 5 |
-| K1-02 | GitHub Actions CI | [~] | `.github/workflows/ci.yml` | PR vào `dev`, `staging` và push lên `dev`: lint, typecheck, format, test, build. Chờ chạy xanh trên GitHub. Chưa có test RLS, `db diff`, báo nhóm chat (mục 4) |
+| K1-02 | GitHub Actions CI | [x] | `.github/workflows/ci.yml` | PR vào `dev`, `staging` và push lên `dev`: lint, typecheck, format, test, build. Lần chạy đầu xanh. Chưa có test RLS, `db diff`, báo nhóm chat (mục 4) |
 | K1-03 | Vercel | [ ] | | Biến preview chỉ gán nhánh `staging` |
 | K1-04 | Supabase staging và main | [ ] | `supabase/config.toml` | |
 | K1-05 | LiveKit Cloud | [ ] | | |
@@ -47,7 +47,7 @@ Việc thiếu so với sheet: Google OAuth, webhook báo nhóm chat, job dọn 
 
 1. [ ] Cả nhóm review `docs/architecture.md` và `docs/design/` (K0-01 đến K0-08)
 2. [ ] K0-13: 4 bạn còn lại clone và chạy theo `README.md`, báo lại kết quả
-3. [ ] K1-02: push `dev`, kiểm tra workflow CI chạy xanh trên GitHub
+3. [ ] K1-03: nối Vercel
 
 ## 3. Nhật ký phiên
 
@@ -58,11 +58,11 @@ Việc thiếu so với sheet: Google OAuth, webhook báo nhóm chat, job dọn 
 | Việc | Trạng thái |
 |---|---|
 | `.github/workflows/ci.yml`: `actions/checkout@v7`, `actions/setup-node@v7` (Node theo `.nvmrc`, cache npm), `npm ci`, lint, typecheck, format, test, build | [x] |
-| Chạy xanh trên GitHub | [ ] |
+| Chạy xanh trên GitHub | [x] |
 
-**Kiểm chứng:** Prettier đọc được file YAML. Input `node-version-file`, `cache` có trong `action.yml` của `setup-node@v7`. Các lệnh của workflow chạy ở local: qua.
+**Kiểm chứng:** Prettier đọc được file YAML. Input `node-version-file`, `cache` có trong `action.yml` của `setup-node@v7`. Push `dev` (`2f5eb9a`): hook pre-push qua; run `44559122785` trên GitHub xanh cả 9 bước, chạy 37 giây.
 
-**Cần follow-up:** push `dev` rồi xem tab Actions.
+**Cần follow-up:** thêm test RLS, `db diff`, báo nhóm chat khi đủ điều kiện (mục 4).
 
 ### 2026-11-19: K1-01 Lefthook, Vitest
 
