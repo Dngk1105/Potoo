@@ -25,8 +25,14 @@ migration lỗi là cả nhóm hỏng.
 | Môi trường | Nhánh | Supabase | LiveKit | Web |
 |---|---|---|---|---|
 | local | `dev`, `feat/*` | Docker, `supabase start` | `livekit-server --dev`, hoặc mock | `next dev` |
-| staging | `staging` | Project staging | LiveKit Cloud | Vercel preview |
-| main | `main` | Project main | LiveKit Cloud | Vercel production |
+| staging | `staging` | Project `potoo-staging` | LiveKit Cloud | Vercel preview |
+| main | `main` | Project `potoo-main` | LiveKit Cloud | Vercel production |
+
+- Hai project Supabase đặt ở region Singapore (`ap-southeast-1`), gói Free.
+- Supabase CLI cài qua `devDependencies` của npm, ghim đúng version; máy dev và CI chạy `npx supabase`.
+- `supabase/config.toml` đặt `project_id = "potoo"`: container và volume Docker local có tên theo key này, không theo tên thư mục clone.
+- Web local mở ở `http://localhost:3000`, không dùng `127.0.0.1`: trình duyệt lưu cookie đăng nhập riêng cho từng host.
+- Container `vector` của Supabase local cần Docker daemon mở `tcp://localhost:2375` trên Windows; không mở thì container khởi động lại liên tục, chỉ mất trang Logs của Studio local. Máy nào muốn tắt: đặt `SUPABASE_ANALYTICS_ENABLED=false` trong `supabase/.env.local` (không commit).
 
 - Không có LiveKit hay webcam: đặt adapter mock trong `.env.local`. Database vẫn chạy Supabase local.
 - Máy dev không trỏ vào database staging. Dùng chung thì migration đang làm dở của một người làm hỏng database của cả nhóm và lệch lịch sử migration của nhánh `staging`.
@@ -44,7 +50,7 @@ migration lỗi là cả nhóm hỏng.
 2. `supabase/seed.sql` chứa dữ liệu mẫu chung: 4 user, bạn bè, room, strip, asset có sẵn.
 3. Pull `dev` xong thì chạy `supabase db reset`: dựng lại schema và nạp seed.
 4. Lỡ sửa bảng bằng Supabase Studio: chạy `supabase db diff -f <tên>` để chuyển thay đổi thành file migration.
-5. CI chạy `supabase db diff --linked` với project staging; có khác biệt nghĩa là có người sửa tay trên staging, CI báo đỏ.
+5. CI chạy `supabase db diff --remote` với project staging; có khác biệt nghĩa là có người sửa tay trên staging, CI báo đỏ.
 6. Cần dữ liệu giống staging: `supabase db dump --data-only` từ staging rồi nạp vào local. Không ghi gì lên staging.
 
 ## 4. CI/CD

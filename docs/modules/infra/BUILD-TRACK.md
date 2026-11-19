@@ -36,7 +36,7 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 | K1-01 | Lefthook | [x] | `lefthook.yml`, `vitest.config.mts` | Pre-commit: Prettier file đã stage. Pre-push: lint, typecheck, format, test. Thêm Vitest 5 |
 | K1-02 | GitHub Actions CI | [x] | `.github/workflows/ci.yml` | PR vào `dev`, `staging` và push lên `dev`: lint, typecheck, format, test, build. Lần chạy đầu xanh. Chưa có test RLS, `db diff`, báo nhóm chat (mục 4) |
 | K1-03 | Vercel | [ ] | | Biến preview chỉ gán nhánh `staging` |
-| K1-04 | Supabase staging và main | [ ] | `supabase/config.toml` | |
+| K1-04 | Supabase staging và main | [x] | `supabase/config.toml` | `potoo-staging`, `potoo-main`, Singapore. CLI 3.2.0 qua npm. `project_id = "potoo"` |
 | K1-05 | LiveKit Cloud | [ ] | | |
 | K1-06 | Migration tự động | [ ] | `.github/workflows/` | Lên staging và main |
 | K1-07 | Secret, `.env.example` | [ ] | `.env.example` | |
@@ -47,9 +47,24 @@ Việc thiếu so với sheet: Google OAuth, webhook báo nhóm chat, job dọn 
 
 1. [ ] Cả nhóm review `docs/architecture.md` và `docs/design/` (K0-01 đến K0-08)
 2. [ ] K0-13: 4 bạn còn lại clone và chạy theo `README.md`, báo lại kết quả
-3. [ ] K1-03: nối Vercel
+3. [ ] K1-05: LiveKit Cloud cho staging và main
 
 ## 3. Nhật ký phiên
+
+### 2026-11-20: K1-04 Supabase staging và main
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| Supabase CLI 3.2.0 trong `devDependencies`, ghim đúng version | [x] |
+| `supabase init`: `project_id = "potoo"`, `site_url = "http://localhost:3000"`, redirect `http://localhost:3000/**` | [x] |
+| Project `potoo-staging`, `potoo-main`: region Singapore, Data API bật, tự cấp quyền bảng mới (giống local), không bật RLS tự động, không nối GitHub (Dũng tạo trên web) | [x] |
+| Docs: `environments.md` (tên project, region, CLI, `project_id`, `localhost`, tắt analytics), `architecture.md` bảng Version; `db diff --linked` đổi thành `--remote` | [x] |
+
+**Kiểm chứng:** `npx supabase --version`: `3.2.0`. `npx supabase start`: 12 container nhóm `potoo` (label `com.docker.compose.project=potoo`), `GET :54321/auth/v1/health` trả 200. Container `vector` khởi động lại liên tục trên Windows (cần daemon `tcp://localhost:2375`); đặt `SUPABASE_ANALYTICS_ENABLED=false` trong `supabase/.env.local` thì không còn `vector`, `analytics`, Auth vẫn 200. `npx supabase projects list`: `potoo-staging` (`xpxvrglutvgmifydzauj`) và `potoo-main` (`ddqpfmknmumdpihaohil`) ở `ap-southeast-1`, `ACTIVE_HEALTHY`, Postgres 17.12 giống local. `GET https://<ref>.supabase.co/auth/v1/health` không có `apikey`: 401 cả hai.
+
+**Cần follow-up:** `supabase/seed.sql` chưa có (`supabase start` báo không tìm thấy file). CI `db diff --remote` làm cùng K1-06.
 
 ### 2026-11-19: K1-02 GitHub Actions CI
 
@@ -127,7 +142,9 @@ Việc thiếu so với sheet: Google OAuth, webhook báo nhóm chat, job dọn 
 | 2026-11-19 | Quyền admin GitHub, Vercel, Supabase, LiveKit Cloud, Google Cloud Console | Chủ tài khoản |
 | 2026-11-19 | Gói 2 đến Gói 5 tạo thư mục trong `docs/modules/` từ `_template/` | Người phụ trách từng gói |
 | 2026-11-19 | CI chạy test RLS: cần `supabase/config.toml` và test trong `tests/rls/` | Gói 2 |
-| 2026-11-19 | CI chạy `supabase db diff --linked`: cần project Supabase staging | K1-04 |
+| 2026-11-19 | CI chạy `supabase db diff --remote` với project staging | K1-06 |
+| 2026-11-20 | Đề xuất thêm vào `database.md` mục 2: migration tạo bảng bật RLS ngay cho bảng đó (cloud không bật RLS tự động, giống local) | Gói 2, cả nhóm |
+| 2026-11-20 | `supabase/seed.sql` (4 user, bạn bè, room, strip, asset) | Gói 2 |
 | 2026-11-19 | CI báo lỗi vào nhóm chat: nhóm dùng chat nào, webhook URL | Cả nhóm |
 
 ## Cập nhật thế nào

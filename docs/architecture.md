@@ -27,6 +27,7 @@ trên điện thoại và laptop.
 | TypeScript | 6.0.x | `typescript-eslint` chỉ hỗ trợ TypeScript dưới 6.1. Chưa lên TypeScript 7 |
 | ESLint | 9.x | `eslint-plugin-react`, `jsx-a11y`, `import` trong `eslint-config-next` chưa hỗ trợ ESLint 10 |
 | Tailwind | 4.3 | |
+| Supabase CLI | 3.2.0 (`devDependencies`) | Lệnh ghi lên cloud phải có `--remote`; thiếu thì chạy vào database local. Trong CI thêm `--yes` |
 
 `npm run typecheck` chạy `next typegen` trước `tsc`: type như `LayoutProps` do Next sinh ra, thiếu thì `tsc` báo lỗi.
 
