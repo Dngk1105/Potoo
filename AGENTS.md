@@ -35,6 +35,7 @@ Không đọc hết `docs/`. Bắt đầu từ `docs/architecture.md`: toàn c�
 | Thuật ngữ                                     | `docs/glossary.yaml`   |
 | Giọng văn tiếng Việt (chat, docs)           | skill `photobooth-vn`  |
 
+- Viết hoặc sửa file trong `docs/`, trả lời về kiến trúc: nạp skill `photobooth-vn` trước.
 - Chat với người làm: tiếng Việt, câu ngắn, thuật ngữ viết đúng `term` trong `docs/glossary.yaml`.
 - Comment trong code viết tiếng Anh.
 - Repo: [github.com/Dngk1105/Potoo](https://github.com/Dngk1105/Potoo). Nhánh mặc định `dev`.
