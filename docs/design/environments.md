@@ -55,7 +55,8 @@ migration lỗi là cả nhóm hỏng.
 
 | Khi | Ở đâu | Chạy gì |
 |---|---|---|
-| Trước khi push | Máy dev, Lefthook | lint, typecheck, test |
+| Trước khi commit | Máy dev, Lefthook | Prettier format file đã stage |
+| Trước khi push | Máy dev, Lefthook | lint, typecheck, format, test |
 | PR vào `dev` | GitHub Actions | lint, typecheck, Vitest, test RLS trên Supabase chạy trong runner |
 | Merge vào `staging` | GitHub Actions, Vercel | Chạy migration lên project staging; Vercel deploy preview |
 | Merge vào `main` | GitHub Actions, Vercel | Chạy migration lên project main; Vercel deploy production |

@@ -33,7 +33,7 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 
 | Mã | Việc | Trạng thái | File | Ghi chú |
 |---|---|---|---|---|
-| K1-01 | Lefthook | [ ] | `lefthook.yml` | |
+| K1-01 | Lefthook | [x] | `lefthook.yml`, `vitest.config.mts` | Pre-commit: Prettier file đã stage. Pre-push: lint, typecheck, format, test. Thêm Vitest 5 |
 | K1-02 | GitHub Actions CI | [ ] | `.github/workflows/` | Thêm test RLS (cần `supabase start` trong runner) |
 | K1-03 | Vercel | [ ] | | Biến preview chỉ gán nhánh `staging` |
 | K1-04 | Supabase staging và main | [ ] | `supabase/config.toml` | |
@@ -47,9 +47,22 @@ Việc thiếu so với sheet: Google OAuth, webhook báo nhóm chat, job dọn 
 
 1. [ ] Cả nhóm review `docs/architecture.md` và `docs/design/` (K0-01 đến K0-08)
 2. [ ] K0-13: 4 bạn còn lại clone và chạy theo `README.md`, báo lại kết quả
-3. [ ] K1-01: Lefthook
+3. [ ] K1-02: GitHub Actions CI
 
 ## 3. Nhật ký phiên
+
+### 2026-11-19: K1-01 Lefthook, Vitest
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| Lefthook 2.2: pre-commit Prettier, pre-push lint/typecheck/format/test chạy song song | [x] |
+| Vitest 5.1, alias `@` khớp `tsconfig.json`, script `npm test` | [x] |
+
+**Kiểm chứng:** `lefthook run pre-push --force` trên code có import sai: `typecheck`, `format` báo lỗi, exit 1. Trên code sạch: 4 job qua. `lefthook run pre-commit` với file sai format đã stage: bản stage được format lại. Test mẫu import qua `@/core/config`: qua (đã xoá).
+
+**Cần follow-up:** CI chạy cùng các lệnh này (K1-02).
 
 ### 2026-11-19: K0-12 repo GitHub, K0-13 README
 

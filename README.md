@@ -49,8 +49,14 @@ Supabase local (Docker) và LiveKit chưa cần ở bước này; hướng dẫn
 | `npm run typecheck` | Sinh type của Next rồi chạy `tsc` |
 | `npm run format` | Format code bằng Prettier |
 | `npm run format:check` | Kiểm tra format, không sửa file |
+| `npm test` | Chạy test Vitest |
 
-Trước khi push: `npm run lint`, `npm run typecheck` và `npm run format:check` phải qua.
+Lefthook tự cài git hook khi chạy `npm ci`; không có thì chạy `npx lefthook install`.
+
+| Hook | Chạy |
+|---|---|
+| Trước khi commit | Prettier format file đã stage |
+| Trước khi push | `lint`, `typecheck`, `format:check`, `test`; một lệnh lỗi thì push bị chặn |
 
 ## Làm việc
 
