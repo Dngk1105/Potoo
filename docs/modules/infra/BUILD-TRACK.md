@@ -22,7 +22,7 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 | Mã | Việc | Trạng thái | Ghi chú |
 |---|---|---|---|
 | K0-09 | Khởi tạo Next.js + TypeScript | [~] | Node 24, npm, Next 16.4.6, TypeScript 6.0, ESLint 9. Build, lint, typecheck qua trên máy Dũng. Chưa commit |
-| K0-10 | Cây thư mục `app/`, `core/`, `modules/`, `supabase/` | [ ] | |
+| K0-10 | Cây thư mục `app/`, `core/`, `modules/`, `supabase/` | [~] | 5 module: room, booth, studio, gallery, social. Mỗi thư mục có `index.ts` rỗng. Lint, typecheck, build qua |
 | K0-11 | ESLint, Prettier, boundaries | [ ] | ESLint 9 dùng `eslint.config.mjs`, không dùng `.eslintrc.json` |
 | K0-12 | 3 nhánh, branch protection | [ ] | |
 | K0-13 | Push khung, cả nhóm clone chạy được | [ ] | |

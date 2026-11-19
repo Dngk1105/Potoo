@@ -36,12 +36,24 @@ trên điện thoại và laptop.
 |---|---|---|
 | `app/` | Chỉ routing và Route Handler | `core/`, `modules/` qua `index.ts` |
 | `core/contracts/` | Port, plugin interface, FrameManifest, message realtime | Không import gì trong repo |
-| `core/adapters/mock/`, `core/adapters/real/` | Adapter của từng port; chọn bằng `.env` | `core/contracts/` |
-| `core/ui/`, `core/auth/`, `core/config/`, `core/db/` | Khung dùng chung | `core/contracts/` |
+| `core/adapters/` | `index.ts` chọn adapter của từng port bằng `.env`; `mock/`, `real/` chứa adapter | `core/contracts/`, `core/db/`, `core/config/` |
+| `core/ui/` | Component dùng chung (shadcn/ui) | `core/contracts/` |
+| `core/auth/` | Hàm `can()` | `core/contracts/` |
+| `core/config/` | Cấu hình, feature flag | `core/contracts/` |
+| `core/db/` | Supabase client, type sinh từ DB | `core/contracts/` |
 | `modules/<tên>/` | Một khu chức năng, một người phụ trách | `core/`; module khác chỉ qua `index.ts` của nó |
 | `supabase/` | Migration, seed, `config.toml` | |
 
-`eslint-plugin-boundaries` chặn import sâu vào module khác. UI gọi port, không gọi thẳng SDK Supabase hay LiveKit.
+| Module | Khu chức năng |
+|---|---|
+| `modules/room/` | Tạo room, vào bằng link/QR/PIN, lobby, lệnh của host |
+| `modules/booth/` | Video call, effect realtime, countdown, chụp shot |
+| `modules/studio/` | Chỉnh strip: chỉnh riêng, chỉnh chung live |
+| `modules/gallery/` | Thư viện strip của user, upload asset |
+| `modules/social/` | Bạn bè, reaction, comment, chia sẻ link |
+
+- Mỗi module và mỗi thư mục trong `core/` export ra ngoài qua `index.ts`. `eslint-plugin-boundaries` chặn import sâu vào thư mục khác.
+- LiveKit, webcam, Auth, Storage: gọi qua port. Đọc ghi bảng: hàm truy vấn trong module, dùng client của `core/db/`.
 
 ## Kiểm tra quyền ở 3 lớp
 
