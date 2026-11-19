@@ -27,7 +27,7 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 | K0-10 | Cây thư mục `app/`, `core/`, `modules/`, `supabase/` | [~] | `docs/architecture.md` | 5 module: room, booth, studio, gallery, social |
 | K0-11 | ESLint, Prettier, boundaries | [~] | `eslint.config.mjs`, `.prettierrc.json` | Boundaries theo bảng Thư mục; thử 3 import sai đều bị chặn. Prettier bỏ qua `.md`, `.yaml` |
 | K0-12 | 3 nhánh, branch protection | [x] | `github.com/Dngk1105/Potoo` | Nhánh mặc định `dev` (kiểm bằng `git ls-remote --symref`). Ruleset: `main`, `staging` chặn xoá, chặn force push, bắt PR; `dev` chặn xoá, chặn force push (Dũng tạo trên web) |
-| K0-13 | Push khung, cả nhóm clone chạy được | [ ] | `README.md` | |
+| K0-13 | Push khung, cả nhóm clone chạy được | [~] | `README.md` | Clone mới trên máy Dũng chạy đủ README. Chờ 4 bạn còn lại clone thử |
 
 ### Gói 1: Hạ tầng và CI/CD
 
@@ -46,9 +46,23 @@ Việc thiếu so với sheet: Google OAuth, webhook báo nhóm chat, job dọn 
 ## 2. Cần làm tiếp
 
 1. [ ] Cả nhóm review `docs/architecture.md` và `docs/design/` (K0-01 đến K0-08)
-2. [ ] K0-13: viết `README.md` hướng dẫn clone và chạy; cả nhóm clone chạy được
+2. [ ] K0-13: 4 bạn còn lại clone và chạy theo `README.md`, báo lại kết quả
+3. [ ] K1-01: Lefthook
 
 ## 3. Nhật ký phiên
+
+### 2026-11-19: K0-12 repo GitHub, K0-13 README
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| Push `main`, `dev`, `staging` lên `github.com/Dngk1105/Potoo`; nhánh mặc định `dev`; ruleset | [x] |
+| `README.md`: cần cài gì, chạy lần đầu, lệnh, cách làm nhánh | [x] |
+
+**Kiểm chứng:** clone mới từ GitHub vào thư mục trống, ra nhánh `dev`. `npm ci`, `npm run lint`, `npm run typecheck`, `npm run format:check`, `npm run build`: qua. `npm run dev`: `GET /` trả 200.
+
+**Cần follow-up:** 4 bạn còn lại clone thử.
 
 ### 2026-11-19: K0-11 ESLint boundaries, Prettier
 
