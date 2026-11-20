@@ -39,6 +39,7 @@ migration lỗi là cả nhóm hỏng.
 - Không có LiveKit hay webcam: đặt adapter mock trong `.env.local`. Database vẫn chạy Supabase local.
 - Máy dev không trỏ vào database staging. Dùng chung thì migration đang làm dở của một người làm hỏng database của cả nhóm và lệch lịch sử migration của nhánh `staging`.
 - Biến môi trường preview của Vercel chỉ gán cho nhánh `staging`. Nhánh khác không deploy lên cloud.
+- Vercel project `potoo` (gói Hobby): production `https://potoo-app.vercel.app` (nhánh `main`), staging `https://potoo-staging.vercel.app` (nhánh `staging`). `vercel.json` tắt deploy mọi nhánh trừ `main`, `staging`. Staging tắt Vercel Authentication: ai có link cũng mở được.
 - Project Supabase free tạm dừng sau 7 ngày không có request. Job GitHub Actions hằng ngày dọn shot hết hạn trên staging và main; job này cũng giữ hai project không bị tạm dừng.
 - Thời gian giữ shot đặt bằng `SHOT_RETENTION_HOURS`: local 5, staging và main 24.
 
@@ -92,6 +93,8 @@ dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
 
 - Chỉ URL và key public của Supabase được có prefix `NEXT_PUBLIC_`. Key secret của Supabase và `LIVEKIT_API_SECRET` chỉ dùng trong Route Handler.
 - Secret của staging và main lưu trong GitHub Actions secrets và Vercel, tách theo môi trường.
+- GitHub: 2 environment `staging`, `main`, mỗi environment chỉ cho nhánh cùng tên dùng. Secret `SUPABASE_DB_URL` là connection string Session pooler của project tương ứng (runner GitHub không có IPv6). Không dùng `SUPABASE_ACCESS_TOKEN`: token này có quyền trên mọi project của tài khoản.
+- Vercel: 7 biến trong bảng dưới gán cho Production (giá trị main) và Preview nhánh `staging` (giá trị staging). Secret bật Sensitive.
 - Google OAuth: mỗi môi trường khai báo redirect URL riêng trong Google Cloud Console và Supabase Auth.
 
 | Môi trường | OAuth client (Google Cloud project `potoo`) | Redirect URL trong Google | Client ID, secret nằm ở |

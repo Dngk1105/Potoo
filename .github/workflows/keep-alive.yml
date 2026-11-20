@@ -1,0 +1,39 @@
+# Daily query against potoo-staging and potoo-main so free projects are not paused after 7 idle days.
+# Schedules only run on the default branch (dev), which cannot read the staging/main environments.
+# So the scheduled run dispatches this workflow on staging and main, and those runs do the query.
+# Shot cleanup joins this workflow once the shots table exists (docs/design/database.md, section 5).
+name: Keep alive
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # 09:00 Asia/Ho_Chi_Minh
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - run: |
+          gh workflow run keep-alive.yml --ref staging
+          gh workflow run keep-alive.yml --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+
+  ping:
+    if: github.event_name == 'workflow_dispatch' && (github.ref_name == 'staging' || github.ref_name == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: ${{ github.ref_name }}
+    steps:
+      - name: Query database
+        run: psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -c 'select now();'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
