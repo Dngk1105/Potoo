@@ -1,0 +1,38 @@
+# Apply Supabase migrations to the cloud project of the pushed branch.
+# staging -> potoo-staging, main -> potoo-main (GitHub environment of the same name).
+# See docs/design/environments.md, section CI/CD.
+name: Migrate
+
+on:
+  push:
+    branches: [staging, main]
+    paths:
+      - supabase/migrations/**
+      - .github/workflows/migrate.yml
+  workflow_dispatch:
+
+# Never run two migrations against the same project at once, and never cancel one midway.
+concurrency:
+  group: migrate-${{ github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    if: github.ref_name == 'staging' || github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Push migrations
+        run: npx supabase db push --remote="$SUPABASE_DB_URL" --yes
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
