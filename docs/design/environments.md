@@ -25,12 +25,21 @@ migration lỗi là cả nhóm hỏng.
 | Môi trường | Nhánh | Supabase | LiveKit | Web |
 |---|---|---|---|---|
 | local | `dev`, `feat/*` | Docker, `supabase start` | `livekit-server --dev`, hoặc mock | `next dev` |
-| staging | `staging` | Project staging | LiveKit Cloud | Vercel preview |
-| main | `main` | Project main | LiveKit Cloud | Vercel production |
+| staging | `staging` | Project `potoo-staging` | LiveKit Cloud | Vercel preview |
+| main | `main` | Project `potoo-main` | LiveKit Cloud | Vercel production |
+
+- Hai project Supabase đặt ở region Singapore (`ap-southeast-1`), gói Free.
+- LiveKit Cloud có 2 project `potoo-staging`, `potoo-main`, gói Build, key riêng từng project. Gói Build không chọn được region.
+- LiveKit local: `npm run livekit` chạy image Docker `livekit/livekit-server` ở chế độ `--dev`, URL `ws://localhost:7880`, key `devkey` / secret `secret` (key mẫu công khai, chỉ dùng local). Tắt bằng `npm run livekit:stop`.
+- Supabase CLI cài qua `devDependencies` của npm, ghim đúng version; máy dev và CI chạy `npx supabase`.
+- `supabase/config.toml` đặt `project_id = "potoo"`: container và volume Docker local có tên theo key này, không theo tên thư mục clone.
+- Web local mở ở `http://localhost:3000`, không dùng `127.0.0.1`: trình duyệt lưu cookie đăng nhập riêng cho từng host.
+- Container `vector` của Supabase local cần Docker daemon mở `tcp://localhost:2375` trên Windows; không mở thì container khởi động lại liên tục, chỉ mất trang Logs của Studio local. Máy nào muốn tắt: đặt `SUPABASE_ANALYTICS_ENABLED=false` trong `supabase/.env.local` (không commit).
 
 - Không có LiveKit hay webcam: đặt adapter mock trong `.env.local`. Database vẫn chạy Supabase local.
 - Máy dev không trỏ vào database staging. Dùng chung thì migration đang làm dở của một người làm hỏng database của cả nhóm và lệch lịch sử migration của nhánh `staging`.
 - Biến môi trường preview của Vercel chỉ gán cho nhánh `staging`. Nhánh khác không deploy lên cloud.
+- Vercel project `potoo` (gói Hobby): production `https://potoo-app.vercel.app` (nhánh `main`), staging `https://potoo-staging.vercel.app` (nhánh `staging`). `vercel.json` tắt deploy mọi nhánh trừ `main`, `staging`. Staging tắt Vercel Authentication: ai có link cũng mở được.
 - Project Supabase free tạm dừng sau 7 ngày không có request. Job GitHub Actions hằng ngày dọn shot hết hạn trên staging và main; job này cũng giữ hai project không bị tạm dừng.
 - Thời gian giữ shot đặt bằng `SHOT_RETENTION_HOURS`: local 5, staging và main 24.
 
@@ -44,7 +53,7 @@ migration lỗi là cả nhóm hỏng.
 2. `supabase/seed.sql` chứa dữ liệu mẫu chung: 4 user, bạn bè, room, strip, asset có sẵn.
 3. Pull `dev` xong thì chạy `supabase db reset`: dựng lại schema và nạp seed.
 4. Lỡ sửa bảng bằng Supabase Studio: chạy `supabase db diff -f <tên>` để chuyển thay đổi thành file migration.
-5. CI chạy `supabase db diff --linked` với project staging; có khác biệt nghĩa là có người sửa tay trên staging, CI báo đỏ.
+5. CI chạy `supabase db diff --remote` với project staging; có khác biệt nghĩa là có người sửa tay trên staging, CI báo đỏ.
 6. Cần dữ liệu giống staging: `supabase db dump --data-only` từ staging rồi nạp vào local. Không ghi gì lên staging.
 
 ## 4. CI/CD
@@ -55,7 +64,8 @@ migration lỗi là cả nhóm hỏng.
 
 | Khi | Ở đâu | Chạy gì |
 |---|---|---|
-| Trước khi push | Máy dev, Lefthook | lint, typecheck, test |
+| Trước khi commit | Máy dev, Lefthook | Prettier format file đã stage |
+| Trước khi push | Máy dev, Lefthook | lint, typecheck, format, test |
 | PR vào `dev` | GitHub Actions | lint, typecheck, Vitest, test RLS trên Supabase chạy trong runner |
 | Merge vào `staging` | GitHub Actions, Vercel | Chạy migration lên project staging; Vercel deploy preview |
 | Merge vào `main` | GitHub Actions, Vercel | Chạy migration lên project main; Vercel deploy production |
@@ -71,6 +81,27 @@ dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
 **Cách xử lý:**
 
 - `.env.example` liệt kê đủ tên biến, không có giá trị. File `.env.local` không commit.
+
+| Biến | Phía | Ghi chú |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Trình duyệt, server | |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Trình duyệt, server | Key `sb_publishable_...` |
+| `SUPABASE_SECRET_KEY` | Server | Key `sb_secret_...`, bỏ qua RLS |
+| `NEXT_PUBLIC_LIVEKIT_URL` | Trình duyệt | URL `wss://` của project LiveKit |
+| `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` | Server | Route Handler ký token vào room |
+| `SHOT_RETENTION_HOURS` | Server, job dọn shot | |
+
 - Chỉ URL và key public của Supabase được có prefix `NEXT_PUBLIC_`. Key secret của Supabase và `LIVEKIT_API_SECRET` chỉ dùng trong Route Handler.
 - Secret của staging và main lưu trong GitHub Actions secrets và Vercel, tách theo môi trường.
+- GitHub: 2 environment `staging`, `main`, mỗi environment chỉ cho nhánh cùng tên dùng. Secret `SUPABASE_DB_URL` là connection string Session pooler của project tương ứng (runner GitHub không có IPv6). Không dùng `SUPABASE_ACCESS_TOKEN`: token này có quyền trên mọi project của tài khoản.
+- Vercel: 7 biến trong bảng dưới gán cho Production (giá trị main) và Preview nhánh `staging` (giá trị staging). Secret bật Sensitive.
 - Google OAuth: mỗi môi trường khai báo redirect URL riêng trong Google Cloud Console và Supabase Auth.
+
+| Môi trường | OAuth client (Google Cloud project `potoo`) | Redirect URL trong Google | Client ID, secret nằm ở |
+|---|---|---|---|
+| local | `potoo-dev` | `http://127.0.0.1:54321/auth/v1/callback` | `supabase/.env.local` (không commit) |
+| staging | `potoo-dev` | `https://<ref staging>.supabase.co/auth/v1/callback` | Supabase Auth của `potoo-staging` |
+| main | `potoo-main` | `https://<ref main>.supabase.co/auth/v1/callback` | Supabase Auth của `potoo-main` |
+
+- Máy dev chỉ giữ secret của `potoo-dev`. Secret của `potoo-main` chỉ nằm trong Supabase main.
+- OAuth consent screen tên `Potoo`, scope `openid`, `email`, `profile`. Đang ở trạng thái Testing: chỉ email trong danh sách test user (tối đa 100) đăng nhập được. Publish khi có URL production và trang `/privacy`.

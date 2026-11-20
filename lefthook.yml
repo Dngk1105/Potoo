@@ -1,0 +1,21 @@
+# Git hooks. See docs/design/environments.md, section CI/CD.
+# Hooks install on `npm ci`; if not, run `npx lefthook install`.
+
+pre-commit:
+  jobs:
+    - name: prettier
+      glob: "*.{js,mjs,cjs,ts,tsx,css,json}"
+      run: npx prettier --write {staged_files}
+      stage_fixed: true
+
+pre-push:
+  parallel: true
+  jobs:
+    - name: lint
+      run: npm run lint
+    - name: typecheck
+      run: npm run typecheck
+    - name: format
+      run: npm run format:check
+    - name: test
+      run: npm test
