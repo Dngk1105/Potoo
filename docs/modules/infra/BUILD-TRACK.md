@@ -41,15 +41,32 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 | K1-06 | Migration tự động | [ ] | `.github/workflows/` | Lên staging và main |
 | K1-07 | Secret, `.env.example` | [~] | `.env.example` | Có 7 biến Supabase, LiveKit, `SHOT_RETENTION_HOURS`. Chưa nạp secret |
 
-Việc thiếu so với sheet: Google OAuth, webhook báo nhóm chat, job dọn shot và giữ project Supabase không bị tạm dừng.
+Việc thiếu so với sheet: Google OAuth (đã làm, ghi trong nhật ký 2026-11-20), webhook báo nhóm chat, job dọn shot và giữ project Supabase không bị tạm dừng.
 
 ## 2. Cần làm tiếp
 
 1. [ ] Cả nhóm review `docs/architecture.md` và `docs/design/` (K0-01 đến K0-08)
 2. [ ] K0-13: 4 bạn còn lại clone và chạy theo `README.md`, báo lại kết quả
-3. [ ] Google OAuth cho local, staging, main
+3. [ ] K1-07: nạp secret lên GitHub Actions, Vercel
+4. [ ] K1-03: nối Vercel; điền Site URL, redirect URL cho Supabase staging, main
 
 ## 3. Nhật ký phiên
+
+### 2026-11-20: Google OAuth
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| Google Cloud project `potoo`, consent screen `Potoo` (External, Testing, 5 test user), scope `openid`, `email`, `profile`; authorized domain là 2 domain `<ref>.supabase.co` (`supabase.co` là public suffix, Google không nhận) (Dũng làm trên web) | [x] |
+| 2 OAuth client: `potoo-dev` (local, staging), `potoo-main` (main) | [x] |
+| `supabase/config.toml`: `[auth.external.google]` đọc client từ `supabase/.env.local` | [x] |
+| Bật Google trong Supabase Auth của `potoo-staging`, `potoo-main` (Dũng làm trên web) | [x] |
+| Publish consent screen | [ ] chờ K1-03 |
+
+**Kiểm chứng:** `GET /auth/v1/authorize?provider=google` trên local, staging, main: cả 3 trả 302 tới `accounts.google.com` với `redirect_uri` đúng callback của từng môi trường; Google trả 302 tới `/v3/signin/identifier` (không có `redirect_uri_mismatch`, `invalid_client`). So hash `client_id`: local và staging giống nhau (`potoo-dev`), main khác. `supabase start` khi chưa có secret vẫn chạy.
+
+**Cần follow-up:** đăng nhập trọn vòng (quay về app) kiểm sau K1-03; Site URL và redirect allowlist của Supabase cloud cần URL Vercel.
 
 ### 2026-11-20: K1-05 LiveKit, bắt đầu K1-07
 
@@ -160,6 +177,7 @@ Việc thiếu so với sheet: Google OAuth, webhook báo nhóm chat, job dọn 
 | 2026-11-20 | Đề xuất thêm vào `database.md` mục 2: migration tạo bảng bật RLS ngay cho bảng đó (cloud không bật RLS tự động, giống local) | Gói 2, cả nhóm |
 | 2026-11-20 | `supabase/seed.sql` (4 user, bạn bè, room, strip, asset) | Gói 2 |
 | 2026-11-19 | CI báo lỗi vào nhóm chat: nhóm dùng chat nào, webhook URL | Cả nhóm |
+| 2026-11-20 | Publish Google OAuth consent screen (đang Testing, tối đa 100 test user): cần URL production Vercel làm authorized domain và trang `/privacy` | K1-03, gói phụ trách `app/` |
 
 ## Cập nhật thế nào
 

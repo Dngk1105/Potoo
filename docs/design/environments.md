@@ -93,3 +93,12 @@ dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
 - Chỉ URL và key public của Supabase được có prefix `NEXT_PUBLIC_`. Key secret của Supabase và `LIVEKIT_API_SECRET` chỉ dùng trong Route Handler.
 - Secret của staging và main lưu trong GitHub Actions secrets và Vercel, tách theo môi trường.
 - Google OAuth: mỗi môi trường khai báo redirect URL riêng trong Google Cloud Console và Supabase Auth.
+
+| Môi trường | OAuth client (Google Cloud project `potoo`) | Redirect URL trong Google | Client ID, secret nằm ở |
+|---|---|---|---|
+| local | `potoo-dev` | `http://127.0.0.1:54321/auth/v1/callback` | `supabase/.env.local` (không commit) |
+| staging | `potoo-dev` | `https://<ref staging>.supabase.co/auth/v1/callback` | Supabase Auth của `potoo-staging` |
+| main | `potoo-main` | `https://<ref main>.supabase.co/auth/v1/callback` | Supabase Auth của `potoo-main` |
+
+- Máy dev chỉ giữ secret của `potoo-dev`. Secret của `potoo-main` chỉ nằm trong Supabase main.
+- OAuth consent screen tên `Potoo`, scope `openid`, `email`, `profile`. Đang ở trạng thái Testing: chỉ email trong danh sách test user (tối đa 100) đăng nhập được. Publish khi có URL production và trang `/privacy`.
