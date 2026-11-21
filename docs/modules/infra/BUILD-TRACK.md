@@ -23,9 +23,9 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 
 | Mã | Việc | Trạng thái | File | Ghi chú |
 |---|---|---|---|---|
-| K0-09 | Khởi tạo Next.js + TypeScript | [~] | `package.json`, `.nvmrc` | Node 24, npm, Next 16.4.6, TypeScript 6.0, ESLint 9 |
-| K0-10 | Cây thư mục `app/`, `core/`, `modules/`, `supabase/` | [~] | `docs/architecture.md` | 5 module: room, booth, studio, gallery, social |
-| K0-11 | ESLint, Prettier, boundaries | [~] | `eslint.config.mjs`, `.prettierrc.json` | Boundaries theo bảng Thư mục; thử 3 import sai đều bị chặn. Prettier bỏ qua `.md`, `.yaml` |
+| K0-09 | Khởi tạo Next.js + TypeScript | [x] | `package.json`, `.nvmrc` | Node 24, npm, Next 16.4.6, TypeScript 6.0, ESLint 9 |
+| K0-10 | Cây thư mục `app/`, `core/`, `modules/`, `supabase/` | [x] | `docs/architecture.md` | 5 module: room, booth, studio, gallery, social |
+| K0-11 | ESLint, Prettier, boundaries | [x] | `eslint.config.mjs`, `.prettierrc.json` | Boundaries theo bảng Thư mục; thử 3 import sai đều bị chặn. Prettier bỏ qua `.md`, `.yaml` |
 | K0-12 | 3 nhánh, branch protection | [x] | `github.com/Dngk1105/Potoo` | Nhánh mặc định `dev` (kiểm bằng `git ls-remote --symref`). Ruleset: `main`, `staging` chặn xoá, chặn force push, bắt PR; `dev` chặn xoá, chặn force push (Dũng tạo trên web) |
 | K0-13 | Push khung, cả nhóm clone chạy được | [~] | `README.md` | Clone mới trên máy Dũng chạy đủ README. Chờ 4 bạn còn lại clone thử |
 
@@ -51,6 +51,20 @@ Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supaba
 4. [ ] 4 bạn còn lại bật thông báo Actions trên GitHub (`README.md` mục Làm việc)
 
 ## 3. Nhật ký phiên
+
+### 2026-11-21: Gộp biến local vào một file, đóng K0-09 đến K0-11
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| Biến local gộp vào `.env.local` ở gốc repo (Dũng chốt "một file"); bỏ `supabase/.env.local`. `.env.example` thêm 3 biến chỉ dùng local | [x] |
+| `README.md`, `environments.md`, comment trong `config.toml` trỏ về `.env.local` | [x] |
+| K0-09, K0-10, K0-11 đánh `[x]` (Dũng yêu cầu); K0-13 giữ `[~]` vì DoD cần 5 máy | [x] |
+
+**Kiểm chứng:** Supabase CLI 3.2.0 trên bản copy `config.toml` (project_id khác): đặt giá trị sai `SUPABASE_API_PORT=notanumber` lần lượt vào `.env`, `.env.local`, `supabase/.env`, `supabase/.env.local`: cả 4 báo `CliConfigValueError`, tức CLI đọc cả `.env.local` gốc. Giá trị rỗng `SUPABASE_ANALYTICS_ENABLED=`: không lỗi. Chuyển 2 biến Google sang `.env.local` gốc, `supabase stop`/`start`: hash `client_id` ở `/auth/v1/authorize` vẫn `ff22e4ee` (client `potoo-dev`). K0-09: `npm run lint`, `typecheck`, `build` qua. K0-10: đủ thư mục theo bảng Thư mục, mỗi thư mục trong `core/`, `modules/` có `index.ts`. K0-11: đã kiểm 3 import sai bị chặn (nhật ký 2026-11-19).
+
+**Cần follow-up:** K0-13 chờ 4 bạn clone thử.
 
 ### 2026-11-21: Trang `/privacy`, publish Google OAuth, dời lịch Keep alive
 

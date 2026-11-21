@@ -34,7 +34,7 @@ migration lỗi là cả nhóm hỏng.
 - Supabase CLI cài qua `devDependencies` của npm, ghim đúng version; máy dev và CI chạy `npx supabase`.
 - `supabase/config.toml` đặt `project_id = "potoo"`: container và volume Docker local có tên theo key này, không theo tên thư mục clone.
 - Web local mở ở `http://localhost:3000`, không dùng `127.0.0.1`: trình duyệt lưu cookie đăng nhập riêng cho từng host.
-- Container `vector` của Supabase local cần Docker daemon mở `tcp://localhost:2375` trên Windows; không mở thì container khởi động lại liên tục, chỉ mất trang Logs của Studio local. Máy nào muốn tắt: đặt `SUPABASE_ANALYTICS_ENABLED=false` trong `supabase/.env.local` (không commit).
+- Container `vector` của Supabase local cần Docker daemon mở `tcp://localhost:2375` trên Windows; không mở thì container khởi động lại liên tục, chỉ mất trang Logs của Studio local. Máy nào muốn tắt: đặt `SUPABASE_ANALYTICS_ENABLED=false` trong `.env.local`.
 
 - Không có LiveKit hay webcam: đặt adapter mock trong `.env.local`. Database vẫn chạy Supabase local.
 - Máy dev không trỏ vào database staging. Dùng chung thì migration đang làm dở của một người làm hỏng database của cả nhóm và lệch lịch sử migration của nhánh `staging`.
@@ -84,7 +84,7 @@ dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
 
 **Cách xử lý:**
 
-- `.env.example` liệt kê đủ tên biến, không có giá trị. File `.env.local` không commit.
+- `.env.example` liệt kê đủ tên biến, không có giá trị. Mỗi máy dev có một file `.env.local` ở gốc repo chứa mọi biến local; Next.js và Supabase CLI cùng đọc file này. File `.env.local` không commit.
 
 | Biến | Phía | Ghi chú |
 |---|---|---|
@@ -94,6 +94,8 @@ dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
 | `NEXT_PUBLIC_LIVEKIT_URL` | Trình duyệt | URL `wss://` của project LiveKit |
 | `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` | Server | Route Handler ký token vào room |
 | `SHOT_RETENTION_HOURS` | Server, job dọn shot | |
+| `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`, `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET` | Supabase CLI, chỉ local | Client `potoo-dev`. Staging, main điền trong Supabase Auth |
+| `SUPABASE_ANALYTICS_ENABLED` | Supabase CLI, chỉ local | `false` để bỏ container `vector`, `analytics` |
 
 - Chỉ URL và key public của Supabase được có prefix `NEXT_PUBLIC_`. Key secret của Supabase và `LIVEKIT_API_SECRET` chỉ dùng trong Route Handler.
 - Secret của staging và main lưu trong GitHub Actions secrets và Vercel, tách theo môi trường.
@@ -103,7 +105,7 @@ dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
 
 | Môi trường | OAuth client (Google Cloud project `potoo`) | Redirect URL trong Google | Client ID, secret nằm ở |
 |---|---|---|---|
-| local | `potoo-dev` | `http://127.0.0.1:54321/auth/v1/callback` | `supabase/.env.local` (không commit) |
+| local | `potoo-dev` | `http://127.0.0.1:54321/auth/v1/callback` | `.env.local` của từng máy (không commit) |
 | staging | `potoo-dev` | `https://<ref staging>.supabase.co/auth/v1/callback` | Supabase Auth của `potoo-staging` |
 | main | `potoo-main` | `https://<ref main>.supabase.co/auth/v1/callback` | Supabase Auth của `potoo-main` |
 
