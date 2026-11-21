@@ -14,7 +14,8 @@ strip chung, lưu và chia sẻ trong gallery. Một bản web chạy trên đi�
 Máy đang có Node khác 24: cài [fnm](https://github.com/Schniz/fnm) hoặc [nvm-windows](https://github.com/coreybutler/nvm-windows),
 rồi chạy `fnm use` (hoặc `nvm use 24`) trong thư mục repo.
 
-Supabase local (Docker) và LiveKit chưa cần ở bước này; hướng dẫn thêm khi xong Gói 1.
+Chạy database và video call trên máy thì cần thêm [Docker Desktop](https://www.docker.com/products/docker-desktop/), xem mục
+"Supabase và LiveKit local".
 
 ## Chạy lần đầu
 
@@ -38,6 +39,36 @@ Supabase local (Docker) và LiveKit chưa cần ở bước này; hướng dẫn
    ```
 
 4. Mở `http://localhost:3000`. Trang trắng là đúng: app chưa có màn nào.
+
+## Supabase và LiveKit local
+
+1. Mở Docker Desktop, chờ "Engine running".
+2. Chạy Supabase local. Lần đầu tải image mất 5–15 phút:
+
+   ```powershell
+   npx supabase start
+   ```
+
+3. Chạy LiveKit local:
+
+   ```powershell
+   npm run livekit
+   ```
+
+4. Copy `.env.example` thành `.env.local`, điền giá trị local: Supabase lấy từ `npx supabase status`; LiveKit là
+   `ws://localhost:7880`, key `devkey`, secret `secret`; `SHOT_RETENTION_HOURS=5`.
+5. Đăng nhập Google trên máy: xin Dũng Client ID và secret của OAuth client `potoo-dev`, điền vào `supabase/.env.local`:
+
+   ```
+   SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=
+   SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=
+   ```
+
+   Rồi chạy `npx supabase stop` và `npx supabase start`. Email Google phải có trong danh sách test user.
+6. Xong việc: `npx supabase stop` và `npm run livekit:stop` để trả RAM. Dữ liệu local vẫn giữ.
+
+Trên Windows, container `supabase_vector_potoo` khởi động lại liên tục là bình thường. Muốn tắt: thêm
+`SUPABASE_ANALYTICS_ENABLED=false` vào `supabase/.env.local`.
 
 ## Lệnh
 
@@ -64,6 +95,8 @@ Lefthook tự cài git hook khi chạy `npm ci`; không có thì chạy `npx lef
 2. Commit theo dạng `feat(room): ...`, `fix(studio): ...`.
 3. Trước khi merge vào `dev`: `git pull --rebase origin dev`.
 4. Không push thẳng `staging`, `main`; không `push --force`.
+5. Bật báo CI đỏ một lần: github.com → Settings → Notifications → Actions, tick Email và "Only notify for failed
+   workflows". GitHub báo cho người push hoặc mở PR; thấy run đỏ trên `staging`, `main` thì nhắn vào nhóm.
 
 ## Đọc gì
 

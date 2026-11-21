@@ -35,22 +35,52 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 |---|---|---|---|---|
 | K1-01 | Lefthook | [x] | `lefthook.yml`, `vitest.config.mts` | Pre-commit: Prettier file đã stage. Pre-push: lint, typecheck, format, test. Thêm Vitest 5 |
 | K1-02 | GitHub Actions CI | [x] | `.github/workflows/ci.yml` | PR vào `dev`, `staging` và push lên `dev`: lint, typecheck, format, test, build. Lần chạy đầu xanh. Chưa có test RLS, `db diff`, báo nhóm chat (mục 4) |
-| K1-03 | Vercel | [ ] | | Biến preview chỉ gán nhánh `staging` |
+| K1-03 | Vercel | [x] | `vercel.json` | `potoo-app.vercel.app` (`main`), `potoo-staging.vercel.app` (`staging`). Chỉ 2 nhánh này deploy. Biến preview chỉ gán nhánh `staging` |
 | K1-04 | Supabase staging và main | [x] | `supabase/config.toml` | `potoo-staging`, `potoo-main`, Singapore. CLI 3.2.0 qua npm. `project_id = "potoo"` |
 | K1-05 | LiveKit Cloud | [x] | `package.json` (`npm run livekit`) | 2 project Cloud gói Build; local chạy image Docker 1.13.11 `--dev`. Bỏ prefix tên room |
-| K1-06 | Migration tự động | [ ] | `.github/workflows/` | Lên staging và main |
-| K1-07 | Secret, `.env.example` | [~] | `.env.example` | Có 7 biến Supabase, LiveKit, `SHOT_RETENTION_HOURS`. Chưa nạp secret |
+| K1-06 | Migration tự động | [x] | `.github/workflows/migrate.yml`, `keep-alive.yml` | Push lên `staging`, `main` chạy `db push --remote`. Keep alive hằng ngày 09:00 |
+| K1-07 | Secret, `.env.example` | [x] | `.env.example` | 7 biến. GitHub environment `staging`, `main` (`SUPABASE_DB_URL`); Vercel Production và Preview `staging` |
 
-Việc thiếu so với sheet: Google OAuth (đã làm, ghi trong nhật ký 2026-11-20), webhook báo nhóm chat, job dọn shot và giữ project Supabase không bị tạm dừng.
+Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supabase không bị tạm dừng (đã làm, xem nhật ký 2026-11-20); job dọn shot (chờ bảng `shots` của Gói 2).
 
 ## 2. Cần làm tiếp
 
 1. [ ] Cả nhóm review `docs/architecture.md` và `docs/design/` (K0-01 đến K0-08)
 2. [ ] K0-13: 4 bạn còn lại clone và chạy theo `README.md`, báo lại kết quả
-3. [ ] K1-07: nạp secret lên GitHub Actions, Vercel
-4. [ ] K1-03: nối Vercel; điền Site URL, redirect URL cho Supabase staging, main
+3. [ ] Publish Google OAuth consent screen (cần trang `/privacy`)
 
 ## 3. Nhật ký phiên
+
+### 2026-11-20: Báo CI đỏ
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| Nhóm chat là Zalo/Messenger, không có webhook nhóm: dùng email và GitHub Mobile của GitHub cho người push hoặc mở PR (Dũng chốt) | [x] |
+| `environments.md` mục 4 sửa dòng "Một job đỏ"; `README.md` thêm bước bật thông báo và mục Supabase, LiveKit local | [x] |
+
+**Kiểm chứng:** `npm run format:check`: qua. Chưa có run đỏ để thử thông báo.
+
+**Cần follow-up:** 4 bạn còn lại bật thông báo Actions trên GitHub.
+
+### 2026-11-20: K1-07, K1-03, K1-06, keep alive
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| GitHub environment `staging`, `main` (chỉ nhánh cùng tên), secret `SUPABASE_DB_URL` (Session pooler) (Dũng làm trên web) | [x] |
+| Vercel project `potoo` Hobby: production theo `main`, domain `potoo-app.vercel.app`, `potoo-staging.vercel.app` gán nhánh `staging`; tắt Vercel Authentication; 7 biến cho Production và Preview `staging`, secret bật Sensitive (Dũng làm trên web) | [x] |
+| `vercel.json`: `deploymentEnabled` chỉ `main`, `staging` | [x] |
+| Supabase Auth: Site URL, Redirect URLs của staging, main theo domain Vercel (Dũng làm trên web) | [x] |
+| `.github/workflows/migrate.yml`: push lên `staging`/`main` (đổi `supabase/migrations/**`) chạy `supabase db push --remote="$SUPABASE_DB_URL" --yes` | [x] |
+| `.github/workflows/keep-alive.yml`: schedule trên `dev` dispatch lại workflow trên `staging`, `main`; job chạy `select now()` | [x] |
+| PR `dev` → `staging` (#1), `staging` → `main` (#2) | [x] |
+
+**Kiểm chứng:** `actionlint` 1.7.7: 0 lỗi; `npx supabase db push --remote=<DB local> --yes --dry-run`: `upToDate`. Push `dev` (`9bec49c`): CI xanh, Vercel không tạo deployment. Merge vào `staging` (`60d9eb3`): Vercel deploy xong, `https://potoo-staging.vercel.app` 200; Migrate run `44702277320` xanh; Keep alive dispatch tay trên `staging` run `44703139166` xanh. Đăng nhập Google qua `/auth/v1/authorize?provider=google&redirect_to=https://potoo-staging.vercel.app/`: quay về staging, user Google có trong Auth của `potoo-staging` (Dũng kiểm). Merge vào `main` (`3881b40`): Vercel deploy xong, `https://potoo-app.vercel.app` 200; Migrate xanh; Keep alive trên `main` run `44707680061` xanh.
+
+**Cần follow-up:** chưa thấy lần chạy theo lịch đầu tiên (09:00 ngày mai). CI chạy `db diff --remote` chưa làm: PR không đọc được environment `staging`, cần chỗ chạy khác. Đăng nhập Google trên production chưa thử.
 
 ### 2026-11-20: Google OAuth
 
@@ -173,10 +203,9 @@ Việc thiếu so với sheet: Google OAuth (đã làm, ghi trong nhật ký 202
 | 2026-11-19 | Quyền admin GitHub, Vercel, Supabase, LiveKit Cloud, Google Cloud Console | Chủ tài khoản |
 | 2026-11-19 | Gói 2 đến Gói 5 tạo thư mục trong `docs/modules/` từ `_template/` | Người phụ trách từng gói |
 | 2026-11-19 | CI chạy test RLS: cần `supabase/config.toml` và test trong `tests/rls/` | Gói 2 |
-| 2026-11-19 | CI chạy `supabase db diff --remote` với project staging | K1-06 |
+| 2026-11-19 | CI chạy `supabase db diff --remote` với project staging: PR không đọc được secret của environment `staging`; đề xuất chạy trong `migrate.yml` trước `db push` | Gói 1, chờ Dũng chốt |
 | 2026-11-20 | Đề xuất thêm vào `database.md` mục 2: migration tạo bảng bật RLS ngay cho bảng đó (cloud không bật RLS tự động, giống local) | Gói 2, cả nhóm |
 | 2026-11-20 | `supabase/seed.sql` (4 user, bạn bè, room, strip, asset) | Gói 2 |
-| 2026-11-19 | CI báo lỗi vào nhóm chat: nhóm dùng chat nào, webhook URL | Cả nhóm |
 | 2026-11-20 | Publish Google OAuth consent screen (đang Testing, tối đa 100 test user): cần URL production Vercel làm authorized domain và trang `/privacy` | K1-03, gói phụ trách `app/` |
 
 ## Cập nhật thế nào

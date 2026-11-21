@@ -69,7 +69,11 @@ migration lỗi là cả nhóm hỏng.
 | PR vào `dev` | GitHub Actions | lint, typecheck, Vitest, test RLS trên Supabase chạy trong runner |
 | Merge vào `staging` | GitHub Actions, Vercel | Chạy migration lên project staging; Vercel deploy preview |
 | Merge vào `main` | GitHub Actions, Vercel | Chạy migration lên project main; Vercel deploy production |
-| Một job đỏ | GitHub Actions | Báo vào nhóm chat |
+| Một job đỏ | GitHub | Email và GitHub Mobile cho người push hoặc mở PR; job theo lịch báo cho người sửa `cron` gần nhất |
+
+Nhóm chat là Zalo hoặc Messenger; hai app này không có webhook cho nhóm, nên không gửi báo tự động vào nhóm. Mỗi
+người bật GitHub → Settings → Notifications → Actions, chọn "Only notify for failed workflows". Thấy run đỏ trên
+`staging` hoặc `main` thì nhắn vào nhóm.
 
 Migration và deploy chạy song song, nên mỗi migration phải tương thích với code cũ: đổi tên cột thì thêm cột mới, copy
 dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
