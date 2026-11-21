@@ -38,7 +38,7 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 | K1-03 | Vercel | [x] | `vercel.json` | `potoo-app.vercel.app` (`main`), `potoo-staging.vercel.app` (`staging`). Chỉ 2 nhánh này deploy. Biến preview chỉ gán nhánh `staging` |
 | K1-04 | Supabase staging và main | [x] | `supabase/config.toml` | `potoo-staging`, `potoo-main`, Singapore. CLI 3.2.0 qua npm. `project_id = "potoo"` |
 | K1-05 | LiveKit Cloud | [x] | `package.json` (`npm run livekit`) | 2 project Cloud gói Build; local chạy image Docker 1.13.11 `--dev`. Bỏ prefix tên room |
-| K1-06 | Migration tự động | [x] | `.github/workflows/migrate.yml`, `keep-alive.yml` | Push lên `staging`, `main` chạy `db push --remote` rồi kiểm drift. Keep alive hằng ngày 09:00 |
+| K1-06 | Migration tự động | [x] | `.github/workflows/migrate.yml`, `keep-alive.yml` | Push lên `staging`, `main` chạy `db push --remote` rồi kiểm drift. Keep alive hằng ngày 08:23 (giờ VN) |
 | K1-07 | Secret, `.env.example` | [x] | `.env.example` | 7 biến. GitHub environment `staging`, `main` (`SUPABASE_DB_URL`); Vercel Production và Preview `staging` |
 
 Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supabase không bị tạm dừng (đã làm, xem nhật ký 2026-11-20); job dọn shot (chờ bảng `shots` của Gói 2).
