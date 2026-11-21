@@ -75,6 +75,11 @@ Nhóm chat là Zalo hoặc Messenger; hai app này không có webhook cho nhóm,
 người bật GitHub → Settings → Notifications → Actions, chọn "Only notify for failed workflows". Thấy run đỏ trên
 `staging` hoặc `main` thì nhắn vào nhóm.
 
+Sau mỗi lần deploy, mở `/api/health` của môi trường đó (`https://potoo-staging.vercel.app/api/health`,
+`https://potoo-app.vercel.app/api/health`). Trang gọi thử Supabase và LiveKit bằng biến của chính môi trường, trả `ok`
+hoặc lý do lỗi cho từng biến (`missing`, `wrong-environment`, `rejected`, `unreachable`), không trả giá trị. Sửa biến
+trên Vercel xong phải Redeploy mới có tác dụng.
+
 Migration và deploy chạy song song, nên mỗi migration phải tương thích với code cũ: đổi tên cột thì thêm cột mới, copy
 dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
 
