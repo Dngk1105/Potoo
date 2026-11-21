@@ -23,9 +23,9 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 
 | Mã | Việc | Trạng thái | File | Ghi chú |
 |---|---|---|---|---|
-| K0-09 | Khởi tạo Next.js + TypeScript | [~] | `package.json`, `.nvmrc` | Node 24, npm, Next 16.4.6, TypeScript 6.0, ESLint 9 |
-| K0-10 | Cây thư mục `app/`, `core/`, `modules/`, `supabase/` | [~] | `docs/architecture.md` | 5 module: room, booth, studio, gallery, social |
-| K0-11 | ESLint, Prettier, boundaries | [~] | `eslint.config.mjs`, `.prettierrc.json` | Boundaries theo bảng Thư mục; thử 3 import sai đều bị chặn. Prettier bỏ qua `.md`, `.yaml` |
+| K0-09 | Khởi tạo Next.js + TypeScript | [x] | `package.json`, `.nvmrc` | Node 24, npm, Next 16.4.6, TypeScript 6.0, ESLint 9 |
+| K0-10 | Cây thư mục `app/`, `core/`, `modules/`, `supabase/` | [x] | `docs/architecture.md` | 5 module: room, booth, studio, gallery, social |
+| K0-11 | ESLint, Prettier, boundaries | [x] | `eslint.config.mjs`, `.prettierrc.json` | Boundaries theo bảng Thư mục; thử 3 import sai đều bị chặn. Prettier bỏ qua `.md`, `.yaml` |
 | K0-12 | 3 nhánh, branch protection | [x] | `github.com/Dngk1105/Potoo` | Nhánh mặc định `dev` (kiểm bằng `git ls-remote --symref`). Ruleset: `main`, `staging` chặn xoá, chặn force push, bắt PR; `dev` chặn xoá, chặn force push (Dũng tạo trên web) |
 | K0-13 | Push khung, cả nhóm clone chạy được | [~] | `README.md` | Clone mới trên máy Dũng chạy đủ README. Chờ 4 bạn còn lại clone thử |
 
@@ -47,9 +47,54 @@ Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supaba
 
 1. [ ] Cả nhóm review `docs/architecture.md` và `docs/design/` (K0-01 đến K0-08)
 2. [ ] K0-13: 4 bạn còn lại clone và chạy theo `README.md`, báo lại kết quả
-3. [ ] Publish Google OAuth consent screen (cần trang `/privacy`)
+3. [ ] Xem Keep alive chạy theo lịch lần đầu (08:23 giờ VN)
+4. [ ] 4 bạn còn lại bật thông báo Actions trên GitHub (`README.md` mục Làm việc)
 
 ## 3. Nhật ký phiên
+
+### 2026-11-21: `/api/health`, kiểm lại staging và main sau khi Dũng đổi key
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| Kiểm từ ngoài: `/`, `/privacy` 200 trên cả 2; Google login staging client `potoo-dev`, main client `potoo-main`; URL LiveKit 200 / `rtc/validate` 401 | [x] |
+| Keep alive chạy tay trên `staging`, `main` (07:43 UTC): xanh, `SUPABASE_DB_URL` đúng | [x] |
+| `app/api/health/route.ts`: kiểm 6 mục bằng biến của môi trường, không trả giá trị, không thêm dependency (Dũng duyệt) | [x] |
+| Chạy `/api/health` trên staging, main | [ ] chờ merge |
+
+**Kiểm chứng:** `lint`, `typecheck`, `build` qua (`ƒ /api/health`). `next start` local: biến đúng → 6/6 `ok`, 200; `LIVEKIT_API_SECRET`, `SUPABASE_SECRET_KEY` sai → 2 mục `rejected`, 503; `SHOT_RETENTION_HOURS=24` ở local → `wrong-environment`.
+
+**Cần follow-up:** đọc `/api/health` trên staging và main sau merge.
+
+### 2026-11-21: Gộp biến local vào một file, đóng K0-09 đến K0-11
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| Biến local gộp vào `.env.local` ở gốc repo (Dũng chốt "một file"); bỏ `supabase/.env.local`. `.env.example` thêm 3 biến chỉ dùng local | [x] |
+| `README.md`, `environments.md`, comment trong `config.toml` trỏ về `.env.local` | [x] |
+| K0-09, K0-10, K0-11 đánh `[x]` (Dũng yêu cầu); K0-13 giữ `[~]` vì DoD cần 5 máy | [x] |
+
+**Kiểm chứng:** Supabase CLI 3.2.0 trên bản copy `config.toml` (project_id khác): đặt giá trị sai `SUPABASE_API_PORT=notanumber` lần lượt vào `.env`, `.env.local`, `supabase/.env`, `supabase/.env.local`: cả 4 báo `CliConfigValueError`, tức CLI đọc cả `.env.local` gốc. Giá trị rỗng `SUPABASE_ANALYTICS_ENABLED=`: không lỗi. Chuyển 2 biến Google sang `.env.local` gốc, `supabase stop`/`start`: hash `client_id` ở `/auth/v1/authorize` vẫn `ff22e4ee` (client `potoo-dev`). K0-09: `npm run lint`, `typecheck`, `build` qua. K0-10: đủ thư mục theo bảng Thư mục, mỗi thư mục trong `core/`, `modules/` có `index.ts`. K0-11: đã kiểm 3 import sai bị chặn (nhật ký 2026-11-19).
+
+**Cần follow-up:** K0-13 chờ 4 bạn clone thử.
+
+### 2026-11-21: Trang `/privacy`, publish Google OAuth, dời lịch Keep alive
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| Keep alive chưa chạy theo lịch lần nào (0 run `schedule` lúc 05:59 UTC, lịch 02:00 UTC). Dời `cron` sang `23 1 * * *` (08:23 giờ VN): GitHub có thể bỏ job đặt đúng phút `:00` khi tải cao | [~] chờ lần chạy tới |
+| `app/privacy/page.tsx`: trang chính sách quyền riêng tư tĩnh (Dũng duyệt nội dung) | [x] |
+| PR `dev` → `staging` → `main` | [x] |
+| Consent screen: home page, privacy link, authorized domain `potoo-app.vercel.app`; Publish app → In production (Dũng làm trên web) | [x] |
+
+**Kiểm chứng:** `npm run lint`, `typecheck`, `build`: qua, `/privacy` là trang tĩnh. `next start` local: trang hiện đủ 6 mục. `https://potoo-staging.vercel.app/privacy` và `https://potoo-app.vercel.app/privacy`: 200. Migrate trên `main` run `44874212713`: Push migrations và Check for schema drift xanh. Đăng nhập Google qua Supabase `potoo-main` với `redirect_to=https://potoo-app.vercel.app/`, bằng tài khoản ngoài danh sách test user: quay về production (Dũng kiểm).
+
+**Cần follow-up:** Keep alive theo lịch ngày 22/11. Vercel Project Settings đặt Node 26.x, build vẫn dùng 24.x theo `engines`; chỉnh về 24.x cho khớp.
 
 ### 2026-11-21: `allowScripts` cho Lefthook
 
@@ -123,7 +168,7 @@ Merge vào `staging` (`3dc868d`): Migrate run `44872167077` xanh, bước "Check
 | 2 OAuth client: `potoo-dev` (local, staging), `potoo-main` (main) | [x] |
 | `supabase/config.toml`: `[auth.external.google]` đọc client từ `supabase/.env.local` | [x] |
 | Bật Google trong Supabase Auth của `potoo-staging`, `potoo-main` (Dũng làm trên web) | [x] |
-| Publish consent screen | [ ] chờ K1-03 |
+| Publish consent screen | [x] 2026-11-21 |
 
 **Kiểm chứng:** `GET /auth/v1/authorize?provider=google` trên local, staging, main: cả 3 trả 302 tới `accounts.google.com` với `redirect_uri` đúng callback của từng môi trường; Google trả 302 tới `/v3/signin/identifier` (không có `redirect_uri_mismatch`, `invalid_client`). So hash `client_id`: local và staging giống nhau (`potoo-dev`), main khác. `supabase start` khi chưa có secret vẫn chạy.
 
@@ -236,7 +281,6 @@ Merge vào `staging` (`3dc868d`): Migrate run `44872167077` xanh, bước "Check
 | 2026-11-19 | CI chạy test RLS: cần `supabase/config.toml` và test trong `tests/rls/` | Gói 2 |
 | 2026-11-20 | Đề xuất thêm vào `database.md` mục 2: migration tạo bảng bật RLS ngay cho bảng đó (cloud không bật RLS tự động, giống local) | Gói 2, cả nhóm |
 | 2026-11-20 | `supabase/seed.sql` (4 user, bạn bè, room, strip, asset) | Gói 2 |
-| 2026-11-20 | Publish Google OAuth consent screen (đang Testing, tối đa 100 test user): cần URL production Vercel làm authorized domain và trang `/privacy` | K1-03, gói phụ trách `app/` |
 
 ## Cập nhật thế nào
 

@@ -55,20 +55,19 @@ Chạy database và video call trên máy thì cần thêm [Docker Desktop](http
    npm run livekit
    ```
 
-4. Copy `.env.example` thành `.env.local`, điền giá trị local: Supabase lấy từ `npx supabase status`; LiveKit là
-   `ws://localhost:7880`, key `devkey`, secret `secret`; `SHOT_RETENTION_HOURS=5`.
-5. Đăng nhập Google trên máy: xin Dũng Client ID và secret của OAuth client `potoo-dev`, điền vào `supabase/.env.local`:
-
-   ```
-   SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=
-   SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=
-   ```
-
-   Rồi chạy `npx supabase stop` và `npx supabase start`. Email Google phải có trong danh sách test user.
-6. Xong việc: `npx supabase stop` và `npm run livekit:stop` để trả RAM. Dữ liệu local vẫn giữ.
+4. Copy `.env.example` thành `.env.local` ở gốc repo. Mọi biến local nằm trong file này; Next.js và Supabase CLI
+   cùng đọc nó. Điền:
+   - Supabase: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` lấy từ
+     `npx supabase status` (dòng `API_URL`, `PUBLISHABLE_KEY`, `SECRET_KEY`).
+   - LiveKit: `NEXT_PUBLIC_LIVEKIT_URL=ws://localhost:7880`, `LIVEKIT_API_KEY=devkey`, `LIVEKIT_API_SECRET=secret`.
+   - `SHOT_RETENTION_HOURS=5`.
+   - Google: xin Dũng Client ID và secret của OAuth client `potoo-dev` (gửi riêng, không dán vào nhóm chat), điền
+     `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`, `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET`, rồi chạy `npx supabase stop` và
+     `npx supabase start`.
+5. Xong việc: `npx supabase stop` và `npm run livekit:stop` để trả RAM. Dữ liệu local vẫn giữ.
 
 Trên Windows, container `supabase_vector_potoo` khởi động lại liên tục là bình thường. Muốn tắt: thêm
-`SUPABASE_ANALYTICS_ENABLED=false` vào `supabase/.env.local`.
+`SUPABASE_ANALYTICS_ENABLED=false` vào `.env.local`.
 
 ## Lệnh
 

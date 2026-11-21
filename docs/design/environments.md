@@ -34,7 +34,7 @@ migration lỗi là cả nhóm hỏng.
 - Supabase CLI cài qua `devDependencies` của npm, ghim đúng version; máy dev và CI chạy `npx supabase`.
 - `supabase/config.toml` đặt `project_id = "potoo"`: container và volume Docker local có tên theo key này, không theo tên thư mục clone.
 - Web local mở ở `http://localhost:3000`, không dùng `127.0.0.1`: trình duyệt lưu cookie đăng nhập riêng cho từng host.
-- Container `vector` của Supabase local cần Docker daemon mở `tcp://localhost:2375` trên Windows; không mở thì container khởi động lại liên tục, chỉ mất trang Logs của Studio local. Máy nào muốn tắt: đặt `SUPABASE_ANALYTICS_ENABLED=false` trong `supabase/.env.local` (không commit).
+- Container `vector` của Supabase local cần Docker daemon mở `tcp://localhost:2375` trên Windows; không mở thì container khởi động lại liên tục, chỉ mất trang Logs của Studio local. Máy nào muốn tắt: đặt `SUPABASE_ANALYTICS_ENABLED=false` trong `.env.local`.
 
 - Không có LiveKit hay webcam: đặt adapter mock trong `.env.local`. Database vẫn chạy Supabase local.
 - Máy dev không trỏ vào database staging. Dùng chung thì migration đang làm dở của một người làm hỏng database của cả nhóm và lệch lịch sử migration của nhánh `staging`.
@@ -75,6 +75,11 @@ Nhóm chat là Zalo hoặc Messenger; hai app này không có webhook cho nhóm,
 người bật GitHub → Settings → Notifications → Actions, chọn "Only notify for failed workflows". Thấy run đỏ trên
 `staging` hoặc `main` thì nhắn vào nhóm.
 
+Sau mỗi lần deploy, mở `/api/health` của môi trường đó (`https://potoo-staging.vercel.app/api/health`,
+`https://potoo-app.vercel.app/api/health`). Trang gọi thử Supabase và LiveKit bằng biến của chính môi trường, trả `ok`
+hoặc lý do lỗi cho từng biến (`missing`, `wrong-environment`, `rejected`, `unreachable`), không trả giá trị. Sửa biến
+trên Vercel xong phải Redeploy mới có tác dụng.
+
 Migration và deploy chạy song song, nên mỗi migration phải tương thích với code cũ: đổi tên cột thì thêm cột mới, copy
 dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
 
@@ -84,7 +89,7 @@ dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
 
 **Cách xử lý:**
 
-- `.env.example` liệt kê đủ tên biến, không có giá trị. File `.env.local` không commit.
+- `.env.example` liệt kê đủ tên biến, không có giá trị. Mỗi máy dev có một file `.env.local` ở gốc repo chứa mọi biến local; Next.js và Supabase CLI cùng đọc file này. File `.env.local` không commit.
 
 | Biến | Phía | Ghi chú |
 |---|---|---|
@@ -94,6 +99,8 @@ dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
 | `NEXT_PUBLIC_LIVEKIT_URL` | Trình duyệt | URL `wss://` của project LiveKit |
 | `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` | Server | Route Handler ký token vào room |
 | `SHOT_RETENTION_HOURS` | Server, job dọn shot | |
+| `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`, `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET` | Supabase CLI, chỉ local | Client `potoo-dev`. Staging, main điền trong Supabase Auth |
+| `SUPABASE_ANALYTICS_ENABLED` | Supabase CLI, chỉ local | `false` để bỏ container `vector`, `analytics` |
 
 - Chỉ URL và key public của Supabase được có prefix `NEXT_PUBLIC_`. Key secret của Supabase và `LIVEKIT_API_SECRET` chỉ dùng trong Route Handler.
 - Secret của staging và main lưu trong GitHub Actions secrets và Vercel, tách theo môi trường.
@@ -103,9 +110,9 @@ dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
 
 | Môi trường | OAuth client (Google Cloud project `potoo`) | Redirect URL trong Google | Client ID, secret nằm ở |
 |---|---|---|---|
-| local | `potoo-dev` | `http://127.0.0.1:54321/auth/v1/callback` | `supabase/.env.local` (không commit) |
+| local | `potoo-dev` | `http://127.0.0.1:54321/auth/v1/callback` | `.env.local` của từng máy (không commit) |
 | staging | `potoo-dev` | `https://<ref staging>.supabase.co/auth/v1/callback` | Supabase Auth của `potoo-staging` |
 | main | `potoo-main` | `https://<ref main>.supabase.co/auth/v1/callback` | Supabase Auth của `potoo-main` |
 
 - Máy dev chỉ giữ secret của `potoo-dev`. Secret của `potoo-main` chỉ nằm trong Supabase main.
-- OAuth consent screen tên `Potoo`, scope `openid`, `email`, `profile`. Đang ở trạng thái Testing: chỉ email trong danh sách test user (tối đa 100) đăng nhập được. Publish khi có URL production và trang `/privacy`.
+- OAuth consent screen tên `Potoo`, scope `openid`, `email`, `profile`. Trạng thái In production: mọi tài khoản Google đăng nhập được. Home page `https://potoo-app.vercel.app`, privacy policy `https://potoo-app.vercel.app/privacy` (`app/privacy/page.tsx`), authorized domain `potoo-app.vercel.app` và 2 domain `<ref>.supabase.co`. Không đặt logo: có logo thì Google bắt duyệt thủ công.
