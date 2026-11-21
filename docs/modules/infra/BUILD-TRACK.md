@@ -61,11 +61,13 @@ Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supaba
 | Kiểm từ ngoài: `/`, `/privacy` 200 trên cả 2; Google login staging client `potoo-dev`, main client `potoo-main`; URL LiveKit 200 / `rtc/validate` 401 | [x] |
 | Keep alive chạy tay trên `staging`, `main` (07:43 UTC): xanh, `SUPABASE_DB_URL` đúng | [x] |
 | `app/api/health/route.ts`: kiểm 6 mục bằng biến của môi trường, không trả giá trị, không thêm dependency (Dũng duyệt) | [x] |
-| Chạy `/api/health` trên staging, main | [ ] chờ merge |
+| Chạy `/api/health` trên staging, main | [x] |
 
 **Kiểm chứng:** `lint`, `typecheck`, `build` qua (`ƒ /api/health`). `next start` local: biến đúng → 6/6 `ok`, 200; `LIVEKIT_API_SECRET`, `SUPABASE_SECRET_KEY` sai → 2 mục `rejected`, 503; `SHOT_RETENTION_HOURS=24` ở local → `wrong-environment`.
 
-**Cần follow-up:** đọc `/api/health` trên staging và main sau merge.
+Sau merge: `https://potoo-staging.vercel.app/api/health` (commit `38765e1`) và `https://potoo-app.vercel.app/api/health` (commit `803d5a1`): `ok: true`, 6/6 mục `ok`, 200. Biến Vercel Dũng vừa đổi đúng cả 2 môi trường.
+
+**Cần follow-up:** không.
 
 ### 2026-11-21: Gộp biến local vào một file, đóng K0-09 đến K0-11
 
