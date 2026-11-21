@@ -38,7 +38,7 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 | K1-03 | Vercel | [x] | `vercel.json` | `potoo-app.vercel.app` (`main`), `potoo-staging.vercel.app` (`staging`). Chỉ 2 nhánh này deploy. Biến preview chỉ gán nhánh `staging` |
 | K1-04 | Supabase staging và main | [x] | `supabase/config.toml` | `potoo-staging`, `potoo-main`, Singapore. CLI 3.2.0 qua npm. `project_id = "potoo"` |
 | K1-05 | LiveKit Cloud | [x] | `package.json` (`npm run livekit`) | 2 project Cloud gói Build; local chạy image Docker 1.13.11 `--dev`. Bỏ prefix tên room |
-| K1-06 | Migration tự động | [x] | `.github/workflows/migrate.yml`, `keep-alive.yml` | Push lên `staging`, `main` chạy `db push --remote`. Keep alive hằng ngày 09:00 |
+| K1-06 | Migration tự động | [x] | `.github/workflows/migrate.yml`, `keep-alive.yml` | Push lên `staging`, `main` chạy `db push --remote` rồi kiểm drift. Keep alive hằng ngày 09:00 |
 | K1-07 | Secret, `.env.example` | [x] | `.env.example` | 7 biến. GitHub environment `staging`, `main` (`SUPABASE_DB_URL`); Vercel Production và Preview `staging` |
 
 Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supabase không bị tạm dừng (đã làm, xem nhật ký 2026-11-20); job dọn shot (chờ bảng `shots` của Gói 2).
@@ -50,6 +50,20 @@ Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supaba
 3. [ ] Publish Google OAuth consent screen (cần trang `/privacy`)
 
 ## 3. Nhật ký phiên
+
+### 2026-11-21: Kiểm schema drift sau migration
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| `migrate.yml`: bước "Check for schema drift" chạy `supabase db diff --remote --output-format json` sau `db push`; `diff` khác rỗng thì exit 1 | [x] |
+| `environments.md` mục 3 bước 5: drift kiểm trong workflow migration, không ở PR | [x] |
+| Chạy trên `staging`, `main` | [ ] chờ merge |
+
+**Kiểm chứng:** DB local sạch: `diff` rỗng, in "No schema drift.". Tạo tay `public.drift_test`: `diff` có `CREATE TABLE "public"."drift_test"`, nhánh exit 1. `db diff` luôn exit 0 nên phải đọc trường `diff`. `actionlint`: 0 lỗi; `prettier --check`: qua.
+
+**Cần follow-up:** chạy trên cloud lần đầu có thể báo khác biệt giả do schema Supabase quản lý; xem log run sau khi merge.
 
 ### 2026-11-20: Báo CI đỏ
 
@@ -203,7 +217,6 @@ Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supaba
 | 2026-11-19 | Quyền admin GitHub, Vercel, Supabase, LiveKit Cloud, Google Cloud Console | Chủ tài khoản |
 | 2026-11-19 | Gói 2 đến Gói 5 tạo thư mục trong `docs/modules/` từ `_template/` | Người phụ trách từng gói |
 | 2026-11-19 | CI chạy test RLS: cần `supabase/config.toml` và test trong `tests/rls/` | Gói 2 |
-| 2026-11-19 | CI chạy `supabase db diff --remote` với project staging: PR không đọc được secret của environment `staging`; đề xuất chạy trong `migrate.yml` trước `db push` | Gói 1, chờ Dũng chốt |
 | 2026-11-20 | Đề xuất thêm vào `database.md` mục 2: migration tạo bảng bật RLS ngay cho bảng đó (cloud không bật RLS tự động, giống local) | Gói 2, cả nhóm |
 | 2026-11-20 | `supabase/seed.sql` (4 user, bạn bè, room, strip, asset) | Gói 2 |
 | 2026-11-20 | Publish Google OAuth consent screen (đang Testing, tối đa 100 test user): cần URL production Vercel làm authorized domain và trang `/privacy` | K1-03, gói phụ trách `app/` |
