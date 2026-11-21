@@ -59,11 +59,14 @@ Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supaba
 |---|---|
 | `migrate.yml`: bước "Check for schema drift" chạy `supabase db diff --remote --output-format json` sau `db push`; `diff` khác rỗng thì exit 1 | [x] |
 | `environments.md` mục 3 bước 5: drift kiểm trong workflow migration, không ở PR | [x] |
-| Chạy trên `staging`, `main` | [ ] chờ merge |
+| Chạy trên `staging` | [x] |
+| Chạy trên `main` | [ ] lần merge vào `main` tới |
 
 **Kiểm chứng:** DB local sạch: `diff` rỗng, in "No schema drift.". Tạo tay `public.drift_test`: `diff` có `CREATE TABLE "public"."drift_test"`, nhánh exit 1. `db diff` luôn exit 0 nên phải đọc trường `diff`. `actionlint`: 0 lỗi; `prettier --check`: qua.
 
-**Cần follow-up:** chạy trên cloud lần đầu có thể báo khác biệt giả do schema Supabase quản lý; xem log run sau khi merge.
+Merge vào `staging` (`3dc868d`): Migrate run `44872167077` xanh, bước "Check for schema drift" xanh trên `potoo-staging`: không báo khác biệt giả từ schema Supabase quản lý.
+
+**Cần follow-up:** xem bước drift trên `main` ở lần merge tới.
 
 ### 2026-11-20: Báo CI đỏ
 
