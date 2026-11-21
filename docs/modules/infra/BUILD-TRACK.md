@@ -51,6 +51,20 @@ Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supaba
 
 ## 3. Nhật ký phiên
 
+### 2026-11-21: `allowScripts` cho Lefthook
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| Log Migrate trên runner (npm 11.19) cảnh báo `lefthook@2.2.2` chưa có trong `allowScripts`. npm 12 bỏ qua install script chưa duyệt, máy dev sẽ không có git hook mà không báo lỗi | [x] |
+| `package.json`: `"allowScripts": { "lefthook@2.2.2": true }` (sinh bằng `npm install-scripts approve lefthook`) | [x] |
+| `architecture.md` bảng Version: ghi luật `allowScripts` | [x] |
+
+**Kiểm chứng:** `npm@11.19.1 install-scripts ls` và `npm@12.2.3 install-scripts ls`: "No packages with unreviewed install scripts". Clone mới, `npm@12.2.3 ci`: không có `allowScripts` thì `.git/hooks` trống; có `allowScripts` thì có `pre-commit`, `pre-push`. `prettier --check package.json`: qua.
+
+**Cần follow-up:** không.
+
 ### 2026-11-21: Kiểm schema drift sau migration
 
 **Người / agent:** Dũng / Claude
