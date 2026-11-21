@@ -36,3 +36,16 @@ jobs:
         run: npx supabase db push --remote="$SUPABASE_DB_URL" --yes
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      # After the push the cloud schema must equal supabase/migrations.
+      # Any difference means someone changed tables by hand (e.g. in Supabase Studio).
+      - name: Check for schema drift
+        run: |
+          diff=$(npx supabase db diff --remote="$SUPABASE_DB_URL" --output-format json | jq -r '.diff')
+          if [ -n "$diff" ]; then
+            echo "::error::Schema on ${GITHUB_REF_NAME} differs from supabase/migrations. Turn the change into a migration (supabase db diff -f <name>)."
+            echo "$diff"
+            exit 1
+          fi
+          echo "No schema drift."
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

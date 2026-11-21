@@ -53,7 +53,7 @@ migration lỗi là cả nhóm hỏng.
 2. `supabase/seed.sql` chứa dữ liệu mẫu chung: 4 user, bạn bè, room, strip, asset có sẵn.
 3. Pull `dev` xong thì chạy `supabase db reset`: dựng lại schema và nạp seed.
 4. Lỡ sửa bảng bằng Supabase Studio: chạy `supabase db diff -f <tên>` để chuyển thay đổi thành file migration.
-5. CI chạy `supabase db diff --remote` với project staging; có khác biệt nghĩa là có người sửa tay trên staging, CI báo đỏ.
+5. Workflow migration chạy `supabase db diff --remote` ngay sau `db push` trên staging và main; có khác biệt nghĩa là có người sửa tay trên cloud, workflow báo đỏ. Không chạy ở PR: PR không đọc được secret của GitHub environment `staging`.
 6. Cần dữ liệu giống staging: `supabase db dump --data-only` từ staging rồi nạp vào local. Không ghi gì lên staging.
 
 ## 4. CI/CD
@@ -67,9 +67,13 @@ migration lỗi là cả nhóm hỏng.
 | Trước khi commit | Máy dev, Lefthook | Prettier format file đã stage |
 | Trước khi push | Máy dev, Lefthook | lint, typecheck, format, test |
 | PR vào `dev` | GitHub Actions | lint, typecheck, Vitest, test RLS trên Supabase chạy trong runner |
-| Merge vào `staging` | GitHub Actions, Vercel | Chạy migration lên project staging; Vercel deploy preview |
-| Merge vào `main` | GitHub Actions, Vercel | Chạy migration lên project main; Vercel deploy production |
-| Một job đỏ | GitHub Actions | Báo vào nhóm chat |
+| Merge vào `staging` | GitHub Actions, Vercel | Chạy migration lên project staging, kiểm drift; Vercel deploy preview |
+| Merge vào `main` | GitHub Actions, Vercel | Chạy migration lên project main, kiểm drift; Vercel deploy production |
+| Một job đỏ | GitHub | Email và GitHub Mobile cho người push hoặc mở PR; job theo lịch báo cho người sửa `cron` gần nhất |
+
+Nhóm chat là Zalo hoặc Messenger; hai app này không có webhook cho nhóm, nên không gửi báo tự động vào nhóm. Mỗi
+người bật GitHub → Settings → Notifications → Actions, chọn "Only notify for failed workflows". Thấy run đỏ trên
+`staging` hoặc `main` thì nhắn vào nhóm.
 
 Migration và deploy chạy song song, nên mỗi migration phải tương thích với code cũ: đổi tên cột thì thêm cột mới, copy
 dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
