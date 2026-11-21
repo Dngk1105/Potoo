@@ -6,7 +6,7 @@ name: Keep alive
 
 on:
   schedule:
-    - cron: "0 2 * * *" # 09:00 Asia/Ho_Chi_Minh
+    - cron: "23 1 * * *" # 08:23 Asia/Ho_Chi_Minh; off the hour, GitHub drops some top-of-hour schedules under load
   workflow_dispatch:
 
 permissions:

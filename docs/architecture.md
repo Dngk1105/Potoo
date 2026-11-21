@@ -22,7 +22,7 @@ trên điện thoại và laptop.
 | Thành phần | Version | Ràng buộc |
 |---|---|---|
 | Node | 24 LTS (`.nvmrc`, `engines.node`) | Vercel hỗ trợ 22, 24, 26 |
-| Package manager | npm (đi kèm Node 24) | Chỉ commit `package-lock.json` |
+| Package manager | npm (đi kèm Node 24) | Chỉ commit `package-lock.json`. Từ npm 12, install script của dependency chỉ chạy khi có trong `allowScripts` của `package.json`; hiện chỉ duyệt `lefthook` (cài git hook). Nâng version `lefthook` thì chạy lại `npm install-scripts approve lefthook` |
 | Next.js | 16.4.6, React 19.3 | `middleware.ts` đổi tên thành `proxy.ts` từ Next 16 |
 | TypeScript | 6.0.x | `typescript-eslint` chỉ hỗ trợ TypeScript dưới 6.1. Chưa lên TypeScript 7 |
 | ESLint | 9.x | `eslint-plugin-react`, `jsx-a11y`, `import` trong `eslint-config-next` chưa hỗ trợ ESLint 10 |

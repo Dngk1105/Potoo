@@ -38,7 +38,7 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 | K1-03 | Vercel | [x] | `vercel.json` | `potoo-app.vercel.app` (`main`), `potoo-staging.vercel.app` (`staging`). Chỉ 2 nhánh này deploy. Biến preview chỉ gán nhánh `staging` |
 | K1-04 | Supabase staging và main | [x] | `supabase/config.toml` | `potoo-staging`, `potoo-main`, Singapore. CLI 3.2.0 qua npm. `project_id = "potoo"` |
 | K1-05 | LiveKit Cloud | [x] | `package.json` (`npm run livekit`) | 2 project Cloud gói Build; local chạy image Docker 1.13.11 `--dev`. Bỏ prefix tên room |
-| K1-06 | Migration tự động | [x] | `.github/workflows/migrate.yml`, `keep-alive.yml` | Push lên `staging`, `main` chạy `db push --remote` rồi kiểm drift. Keep alive hằng ngày 09:00 |
+| K1-06 | Migration tự động | [x] | `.github/workflows/migrate.yml`, `keep-alive.yml` | Push lên `staging`, `main` chạy `db push --remote` rồi kiểm drift. Keep alive hằng ngày 08:23 (giờ VN) |
 | K1-07 | Secret, `.env.example` | [x] | `.env.example` | 7 biến. GitHub environment `staging`, `main` (`SUPABASE_DB_URL`); Vercel Production và Preview `staging` |
 
 Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supabase không bị tạm dừng (đã làm, xem nhật ký 2026-11-20); job dọn shot (chờ bảng `shots` của Gói 2).
@@ -51,6 +51,20 @@ Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supaba
 
 ## 3. Nhật ký phiên
 
+### 2026-11-21: `allowScripts` cho Lefthook
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| Log Migrate trên runner (npm 11.19) cảnh báo `lefthook@2.2.2` chưa có trong `allowScripts`. npm 12 bỏ qua install script chưa duyệt, máy dev sẽ không có git hook mà không báo lỗi | [x] |
+| `package.json`: `"allowScripts": { "lefthook@2.2.2": true }` (sinh bằng `npm install-scripts approve lefthook`) | [x] |
+| `architecture.md` bảng Version: ghi luật `allowScripts` | [x] |
+
+**Kiểm chứng:** `npm@11.19.1 install-scripts ls` và `npm@12.2.3 install-scripts ls`: "No packages with unreviewed install scripts". Clone mới, `npm@12.2.3 ci`: không có `allowScripts` thì `.git/hooks` trống; có `allowScripts` thì có `pre-commit`, `pre-push`. `prettier --check package.json`: qua.
+
+**Cần follow-up:** không.
+
 ### 2026-11-21: Kiểm schema drift sau migration
 
 **Người / agent:** Dũng / Claude
@@ -59,11 +73,14 @@ Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supaba
 |---|---|
 | `migrate.yml`: bước "Check for schema drift" chạy `supabase db diff --remote --output-format json` sau `db push`; `diff` khác rỗng thì exit 1 | [x] |
 | `environments.md` mục 3 bước 5: drift kiểm trong workflow migration, không ở PR | [x] |
-| Chạy trên `staging`, `main` | [ ] chờ merge |
+| Chạy trên `staging` | [x] |
+| Chạy trên `main` | [ ] lần merge vào `main` tới |
 
 **Kiểm chứng:** DB local sạch: `diff` rỗng, in "No schema drift.". Tạo tay `public.drift_test`: `diff` có `CREATE TABLE "public"."drift_test"`, nhánh exit 1. `db diff` luôn exit 0 nên phải đọc trường `diff`. `actionlint`: 0 lỗi; `prettier --check`: qua.
 
-**Cần follow-up:** chạy trên cloud lần đầu có thể báo khác biệt giả do schema Supabase quản lý; xem log run sau khi merge.
+Merge vào `staging` (`3dc868d`): Migrate run `44872167077` xanh, bước "Check for schema drift" xanh trên `potoo-staging`: không báo khác biệt giả từ schema Supabase quản lý.
+
+**Cần follow-up:** xem bước drift trên `main` ở lần merge tới.
 
 ### 2026-11-20: Báo CI đỏ
 

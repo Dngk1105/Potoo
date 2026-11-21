@@ -38,5 +38,8 @@
     "tailwindcss": "4.3.3",
     "typescript": "~6.0.3",
     "vitest": "^5.1.1"
+  },
+  "allowScripts": {
+    "lefthook@2.2.2": true
   }
 }
