@@ -47,9 +47,25 @@ Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supaba
 
 1. [ ] Cả nhóm review `docs/architecture.md` và `docs/design/` (K0-01 đến K0-08)
 2. [ ] K0-13: 4 bạn còn lại clone và chạy theo `README.md`, báo lại kết quả
-3. [ ] Publish Google OAuth consent screen (cần trang `/privacy`)
+3. [ ] Xem Keep alive chạy theo lịch lần đầu (08:23 giờ VN)
+4. [ ] 4 bạn còn lại bật thông báo Actions trên GitHub (`README.md` mục Làm việc)
 
 ## 3. Nhật ký phiên
+
+### 2026-11-21: Trang `/privacy`, publish Google OAuth, dời lịch Keep alive
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| Keep alive chưa chạy theo lịch lần nào (0 run `schedule` lúc 05:59 UTC, lịch 02:00 UTC). Dời `cron` sang `23 1 * * *` (08:23 giờ VN): GitHub có thể bỏ job đặt đúng phút `:00` khi tải cao | [~] chờ lần chạy tới |
+| `app/privacy/page.tsx`: trang chính sách quyền riêng tư tĩnh (Dũng duyệt nội dung) | [x] |
+| PR `dev` → `staging` → `main` | [x] |
+| Consent screen: home page, privacy link, authorized domain `potoo-app.vercel.app`; Publish app → In production (Dũng làm trên web) | [x] |
+
+**Kiểm chứng:** `npm run lint`, `typecheck`, `build`: qua, `/privacy` là trang tĩnh. `next start` local: trang hiện đủ 6 mục. `https://potoo-staging.vercel.app/privacy` và `https://potoo-app.vercel.app/privacy`: 200. Migrate trên `main` run `44874212713`: Push migrations và Check for schema drift xanh. Đăng nhập Google qua Supabase `potoo-main` với `redirect_to=https://potoo-app.vercel.app/`, bằng tài khoản ngoài danh sách test user: quay về production (Dũng kiểm).
+
+**Cần follow-up:** Keep alive theo lịch ngày 22/11. Vercel Project Settings đặt Node 26.x, build vẫn dùng 24.x theo `engines`; chỉnh về 24.x cho khớp.
 
 ### 2026-11-21: `allowScripts` cho Lefthook
 
@@ -123,7 +139,7 @@ Merge vào `staging` (`3dc868d`): Migrate run `44872167077` xanh, bước "Check
 | 2 OAuth client: `potoo-dev` (local, staging), `potoo-main` (main) | [x] |
 | `supabase/config.toml`: `[auth.external.google]` đọc client từ `supabase/.env.local` | [x] |
 | Bật Google trong Supabase Auth của `potoo-staging`, `potoo-main` (Dũng làm trên web) | [x] |
-| Publish consent screen | [ ] chờ K1-03 |
+| Publish consent screen | [x] 2026-11-21 |
 
 **Kiểm chứng:** `GET /auth/v1/authorize?provider=google` trên local, staging, main: cả 3 trả 302 tới `accounts.google.com` với `redirect_uri` đúng callback của từng môi trường; Google trả 302 tới `/v3/signin/identifier` (không có `redirect_uri_mismatch`, `invalid_client`). So hash `client_id`: local và staging giống nhau (`potoo-dev`), main khác. `supabase start` khi chưa có secret vẫn chạy.
 
@@ -236,7 +252,6 @@ Merge vào `staging` (`3dc868d`): Migrate run `44872167077` xanh, bước "Check
 | 2026-11-19 | CI chạy test RLS: cần `supabase/config.toml` và test trong `tests/rls/` | Gói 2 |
 | 2026-11-20 | Đề xuất thêm vào `database.md` mục 2: migration tạo bảng bật RLS ngay cho bảng đó (cloud không bật RLS tự động, giống local) | Gói 2, cả nhóm |
 | 2026-11-20 | `supabase/seed.sql` (4 user, bạn bè, room, strip, asset) | Gói 2 |
-| 2026-11-20 | Publish Google OAuth consent screen (đang Testing, tối đa 100 test user): cần URL production Vercel làm authorized domain và trang `/privacy` | K1-03, gói phụ trách `app/` |
 
 ## Cập nhật thế nào
 

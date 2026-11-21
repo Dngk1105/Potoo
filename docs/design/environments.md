@@ -108,4 +108,4 @@ dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
 | main | `potoo-main` | `https://<ref main>.supabase.co/auth/v1/callback` | Supabase Auth của `potoo-main` |
 
 - Máy dev chỉ giữ secret của `potoo-dev`. Secret của `potoo-main` chỉ nằm trong Supabase main.
-- OAuth consent screen tên `Potoo`, scope `openid`, `email`, `profile`. Đang ở trạng thái Testing: chỉ email trong danh sách test user (tối đa 100) đăng nhập được. Publish khi có URL production và trang `/privacy`.
+- OAuth consent screen tên `Potoo`, scope `openid`, `email`, `profile`. Trạng thái In production: mọi tài khoản Google đăng nhập được. Home page `https://potoo-app.vercel.app`, privacy policy `https://potoo-app.vercel.app/privacy` (`app/privacy/page.tsx`), authorized domain `potoo-app.vercel.app` và 2 domain `<ref>.supabase.co`. Không đặt logo: có logo thì Google bắt duyệt thủ công.
