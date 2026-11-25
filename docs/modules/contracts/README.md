@@ -1,6 +1,6 @@
 # Gói 3: Contracts và mock
 
-Người phụ trách: chưa có. Mã checklist: `K3-01` đến `K3-08`.
+Người phụ trách: Phú. Mã checklist: `K3-01` đến `K3-08`.
 
 | | |
 |---|---|
