@@ -98,11 +98,15 @@ dữ liệu, sửa code, rồi mới drop cột cũ ở migration sau.
 | `SUPABASE_SECRET_KEY` | Server | Key `sb_secret_...`, bỏ qua RLS |
 | `NEXT_PUBLIC_LIVEKIT_URL` | Trình duyệt | URL `wss://` của project LiveKit |
 | `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` | Server | Route Handler ký token vào room |
+| `REALTIME_ADAPTER` | Server | `real` hoặc `mock` cho `RoomPort` và `RoomBus`. Bỏ qua để dùng `real` |
+| `MEDIA_ADAPTER` | Server | `real` hoặc `mock` cho `MediaSource`. Bỏ qua để dùng `real` |
 | `SHOT_RETENTION_HOURS` | Server, job dọn shot | |
 | `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`, `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET` | Supabase CLI, chỉ local | Client `potoo-dev`. Staging, main điền trong Supabase Auth |
 | `SUPABASE_ANALYTICS_ENABLED` | Supabase CLI, chỉ local | `false` để bỏ container `vector`, `analytics` |
 
 - Chỉ URL và key public của Supabase được có prefix `NEXT_PUBLIC_`. Key secret của Supabase và `LIVEKIT_API_SECRET` chỉ dùng trong Route Handler.
+- Server kiểm tra hai biến chọn adapter rồi truyền cấu hình đã kiểm tra sang client. Khởi động lại dev server sau khi đổi
+  `.env.local`. Trên Vercel, deploy lại sau khi đổi cấu hình môi trường.
 - Secret của staging và main lưu trong GitHub Actions secrets và Vercel, tách theo môi trường.
 - GitHub: 2 environment `staging`, `main`, mỗi environment chỉ cho nhánh cùng tên dùng. Secret `SUPABASE_DB_URL` là connection string Session pooler của project tương ứng (runner GitHub không có IPv6). Không dùng `SUPABASE_ACCESS_TOKEN`: token này có quyền trên mọi project của tài khoản.
 - Vercel: 7 biến trong bảng dưới gán cho Production (giá trị main) và Preview nhánh `staging` (giá trị staging). Secret bật Sensitive.

@@ -10,14 +10,14 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 
 | Mã | Việc | Trạng thái | File | Ghi chú |
 |---|---|---|---|---|
-| K0-01 | Tech stack, thư mục | [~] | `docs/architecture.md` | Chờ nhóm review |
-| K0-02 | Vai trò, visibility | [~] | `docs/design/permissions.md` | Chỉ có user; visibility theo từng owner |
-| K0-03 | Bảng quyền thao tác | [~] | `docs/design/permissions.md` | |
-| K0-04 | Schema database | [~] | `docs/design/database.md` | 11 bảng: thêm `assets`, không có `blocks` |
-| K0-05 | Port, plugin interface | [~] | `docs/design/contracts.md` | Mock chỉ còn 3 (`RoomPort`, `RoomBus`, `MediaSource`) |
-| K0-06 | Message realtime, kênh RoomBus | [~] | `docs/design/realtime.md` | Phương án lai. Bỏ `ROOM_STATE`, `KICKED`; thêm `ROOM_CHANGED` |
-| K0-07 | FrameManifest, đường dẫn Storage | [~] | `docs/design/contracts.md`, `docs/design/database.md` | |
-| K0-08 | Luật nhánh Git | [~] | `docs/design/environments.md` | Dùng file thiết kế thay `CONTRIBUTING.md` |
+| K0-01 | Tech stack, thư mục | [x] | `docs/architecture.md` | Dũng chốt 2026-11-26 |
+| K0-02 | Vai trò, visibility | [x] | `docs/design/permissions.md` | Chỉ có user; visibility theo từng owner |
+| K0-03 | Bảng quyền thao tác | [x] | `docs/design/permissions.md` | |
+| K0-04 | Schema database | [x] | `docs/design/database.md` | 11 bảng: thêm `assets`, không có `blocks` |
+| K0-05 | Port, plugin interface | [x] | `docs/design/contracts.md` | Mock chỉ còn 3 (`RoomPort`, `RoomBus`, `MediaSource`) |
+| K0-06 | Message realtime, kênh RoomBus | [x] | `docs/design/realtime.md` | Phương án lai. Bỏ `ROOM_STATE`, `KICKED`; thêm `ROOM_CHANGED` |
+| K0-07 | FrameManifest, đường dẫn Storage | [x] | `docs/design/contracts.md`, `docs/design/database.md` | |
+| K0-08 | Luật nhánh Git | [x] | `docs/design/environments.md` | Dùng file thiết kế thay `CONTRIBUTING.md` |
 
 ### Bước 2: Mở repo
 
@@ -27,7 +27,7 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 | K0-10 | Cây thư mục `app/`, `core/`, `modules/`, `supabase/` | [x] | `docs/architecture.md` | 5 module: room, booth, studio, gallery, social |
 | K0-11 | ESLint, Prettier, boundaries | [x] | `eslint.config.mjs`, `.prettierrc.json` | Boundaries theo bảng Thư mục; thử 3 import sai đều bị chặn. Prettier bỏ qua `.md`, `.yaml` |
 | K0-12 | 3 nhánh, branch protection | [x] | `github.com/Dngk1105/Potoo` | Nhánh mặc định `dev` (kiểm bằng `git ls-remote --symref`). Ruleset: `main`, `staging` chặn xoá, chặn force push, bắt PR; `dev` chặn xoá, chặn force push (Dũng tạo trên web) |
-| K0-13 | Push khung, cả nhóm clone chạy được | [~] | `README.md` | Clone mới trên máy Dũng chạy đủ README. Chờ 4 bạn còn lại clone thử |
+| K0-13 | Push khung, cả nhóm clone chạy được | [x] | `README.md` | Clone mới trên máy Dũng chạy đủ README. Dũng chốt 2026-11-26 |
 
 ### Gói 1: Hạ tầng và CI/CD
 
@@ -41,16 +41,53 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 | K1-06 | Migration tự động | [x] | `.github/workflows/migrate.yml`, `keep-alive.yml` | Push lên `staging`, `main` chạy `db push --remote` rồi kiểm drift. Keep alive hằng ngày 08:23 (giờ VN) |
 | K1-07 | Secret, `.env.example` | [x] | `.env.example` | 7 biến. GitHub environment `staging`, `main` (`SUPABASE_DB_URL`); Vercel Production và Preview `staging` |
 
+### Cụm 1 & 2: Kiểm thử tích hợp
+
+| Mã | Việc | Trạng thái | File | Ghi chú |
+|---|---|---|---|---|
+| K6-01 | Hai tab `/dev/room` qua mock bus | [ ] | | Chờ K5-05 |
+| K6-02 | Đổi `REALTIME_ADAPTER`, `MEDIA_ADAPTER` không sửa UI | [ ] | `core/adapters/index.ts` | Chờ K3-06 |
+| K6-03 | Clone mới chạy một lệnh | [ ] | `README.md` | |
+| K6-04 | Migration tự chạy lên `staging` | [ ] | `.github/workflows/migrate.yml` | Chờ K2-01 |
+| K6-05 | Đăng ký, đăng nhập thật trên demo | [ ] | | Chờ K4-01, K5-03. Kiểm xác nhận email trên cloud |
+| K6-06 | Cấp token LiveKit trên link preview | [ ] | | Chờ K2-07 |
+
 Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supabase không bị tạm dừng (đã làm, xem nhật ký 2026-11-20); job dọn shot (chờ bảng `shots` của Gói 2).
 
 ## 2. Cần làm tiếp
 
-1. [ ] Cả nhóm review `docs/architecture.md` và `docs/design/` (K0-01 đến K0-08)
-2. [ ] K0-13: 4 bạn còn lại clone và chạy theo `README.md`, báo lại kết quả
-3. [ ] Xem Keep alive chạy theo lịch lần đầu (08:23 giờ VN)
-4. [ ] 4 bạn còn lại bật thông báo Actions trên GitHub (`README.md` mục Làm việc)
+1. [ ] K2-01 đến K2-03 (Gói 2, Dũng nhận từ My): xem `docs/modules/database/BUILD-TRACK.md`
+2. [ ] Xem Keep alive chạy theo lịch lần đầu (08:23 giờ VN)
+3. [ ] 4 bạn còn lại bật thông báo Actions trên GitHub (`README.md` mục Làm việc)
 
 ## 3. Nhật ký phiên
+
+### 2026-11-26: Phân công Giai đoạn 1, sửa sheet cho khớp docs
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| Phân công: Dũng K2-01 đến K2-03, K6; My K2-04 đến K2-06; Bảo Gói 4 trừ K4-01, K4-04; Phú K3, K4-01, K4-04; Quân Gói 5. Ghi vào sheet và `docs/modules/` | [x] |
+| Sheet: K2-01, K2-03 thành 11 bảng; K2-04 bỏ 4 role; K2-06, K6-03 dùng `npm`; K6-02 dùng `REALTIME_ADAPTER`, `MEDIA_ADAPTER`; K4-03 bỏ screen share | [x] |
+| Tab Tổng quan: bảng 5 gói lên đầu, trạng thái gói tính bằng công thức | [x] |
+| Thêm bảng K6 vào file này | [x] |
+
+**Kiểm chứng:** đọc lại `Checklist khung!A26:H67` và `Tổng quan công việc!A4:H23` qua Google Sheets connector: khớp nội dung đã ghi.
+
+**Cần follow-up:** sheet chưa có mã việc cho real `MediaSource` (webcam). Việc cần tài khoản Supabase cloud, LiveKit Cloud, Vercel giao Dũng.
+
+### 2026-11-26: Đóng K0-01 đến K0-08, K0-13
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| K0-01 đến K0-08, K0-13 đánh `[x]` cho khớp sheet (Dũng yêu cầu) | [x] |
+
+**Kiểm chứng:** không có code. Đọc lại tab «Checklist khung»: K0-01 đến K0-13 «Hoàn thành», 25/62 việc.
+
+**Cần follow-up:** sheet còn lệch docs ở K2-01, K2-03 (10 bảng), K2-04 (4 role), K2-06, K6-03 (`pnpm`), K6-02 (`NEXT_PUBLIC_USE_MOCK`), K4-03 (screen share); tab tổng quan ghi sai trạng thái gói K0, Gói 1, Gói 3.
 
 ### 2026-11-21: `/api/health`, kiểm lại staging và main sau khi Dũng đổi key
 
@@ -61,11 +98,13 @@ Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supaba
 | Kiểm từ ngoài: `/`, `/privacy` 200 trên cả 2; Google login staging client `potoo-dev`, main client `potoo-main`; URL LiveKit 200 / `rtc/validate` 401 | [x] |
 | Keep alive chạy tay trên `staging`, `main` (07:43 UTC): xanh, `SUPABASE_DB_URL` đúng | [x] |
 | `app/api/health/route.ts`: kiểm 6 mục bằng biến của môi trường, không trả giá trị, không thêm dependency (Dũng duyệt) | [x] |
-| Chạy `/api/health` trên staging, main | [ ] chờ merge |
+| Chạy `/api/health` trên staging, main | [x] |
 
 **Kiểm chứng:** `lint`, `typecheck`, `build` qua (`ƒ /api/health`). `next start` local: biến đúng → 6/6 `ok`, 200; `LIVEKIT_API_SECRET`, `SUPABASE_SECRET_KEY` sai → 2 mục `rejected`, 503; `SHOT_RETENTION_HOURS=24` ở local → `wrong-environment`.
 
-**Cần follow-up:** đọc `/api/health` trên staging và main sau merge.
+Sau merge: `https://potoo-staging.vercel.app/api/health` (commit `38765e1`) và `https://potoo-app.vercel.app/api/health` (commit `803d5a1`): `ok: true`, 6/6 mục `ok`, 200. Biến Vercel Dũng vừa đổi đúng cả 2 môi trường.
+
+**Cần follow-up:** không.
 
 ### 2026-11-21: Gộp biến local vào một file, đóng K0-09 đến K0-11
 

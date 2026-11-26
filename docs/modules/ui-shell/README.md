@@ -1,6 +1,6 @@
 # Gói 5: Giao diện khung và luồng room
 
-Người phụ trách: chưa có. Mã checklist: `K5-01` đến `K5-08`.
+Người phụ trách: Quân. Mã checklist: `K5-01` đến `K5-08`.
 
 | | |
 |---|---|
