@@ -31,3 +31,28 @@ jobs:
       - run: npm run format:check
       - run: npm test
       - run: npm run build
+
+  # Apply every migration on a fresh local Supabase; later also runs RLS tests (K2-05).
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # PR: compare with the target branch. Direct push to dev: compare with the commit before the push.
+      - name: Check migration versions (PR)
+        if: github.event_name == 'pull_request'
+        run: npm run db:check -- origin/${{ github.base_ref }}
+      - name: Check migration versions (push)
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        run: npm run db:check -- ${{ github.event.before }}
+      - name: Start Supabase (database only)
+        run: npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,realtime,mailpit,postgres-meta,postgrest,kong
+      - name: Apply migrations and seed
+        run: npx supabase db reset

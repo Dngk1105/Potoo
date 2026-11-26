@@ -56,6 +56,23 @@ migration lỗi là cả nhóm hỏng.
 5. Workflow migration chạy `supabase db diff --remote` ngay sau `db push` trên staging và main; có khác biệt nghĩa là có người sửa tay trên cloud, workflow báo đỏ. Không chạy ở PR: PR không đọc được secret của GitHub environment `staging`.
 6. Cần dữ liệu giống staging: `supabase db dump --data-only` từ staging rồi nạp vào local. Không ghi gì lên staging.
 
+Lệnh local:
+
+| Lệnh | Việc |
+|---|---|
+| `npm run db:start` | Bật Supabase local |
+| `npm run db:reset` | Dựng lại schema từ `supabase/migrations/`, nạp seed. Xoá hết dữ liệu local |
+| `npm run db:new -- <tên>` | Tạo file migration có timestamp hiện tại |
+| `npm run db:check` | Kiểm migration so với `origin/dev` |
+
+**Tránh xung đột version migration:**
+
+1. Tạo migration bằng `npm run db:new -- <tên>`, không tự đặt tên file.
+2. Trước khi push: `git fetch origin dev`, rồi rebase hoặc merge `dev` vào nhánh của mình.
+3. Migration của mình phải có timestamp mới hơn mọi migration trên `dev`. Cũ hơn thì `db push` lên staging từ chối. Sửa: tạo file mới bằng `npm run db:new`, chuyển SQL sang, xoá file cũ.
+4. Không sửa, không xoá migration đã có trên `dev`.
+5. `npm run db:check` kiểm 3 luật trên. Lefthook chạy lệnh này ở pre-push khi có file migration; CI chạy ở mọi PR.
+
 ## 4. CI/CD
 
 **Vấn đề:** lỗi lint, type, quyền phát hiện muộn thì khó tìm ai gây ra. Migration chạy tay lên cloud dễ quên hoặc chạy sai project.
@@ -65,8 +82,9 @@ migration lỗi là cả nhóm hỏng.
 | Khi | Ở đâu | Chạy gì |
 |---|---|---|
 | Trước khi commit | Máy dev, Lefthook | Prettier format file đã stage |
-| Trước khi push | Máy dev, Lefthook | lint, typecheck, format, test |
-| PR vào `dev` | GitHub Actions | lint, typecheck, Vitest, test RLS trên Supabase chạy trong runner |
+| Trước khi push | Máy dev, Lefthook | lint, typecheck, format, test; `db:check` khi có file migration |
+| PR vào `dev` | GitHub Actions | lint, typecheck, Vitest; `db:check`, `supabase db reset` và test RLS trên Supabase chạy trong runner |
+| Push thẳng lên `dev` | GitHub Actions | Như PR vào `dev`; `db:check` so với commit trước lần push |
 | Merge vào `staging` | GitHub Actions, Vercel | Chạy migration lên project staging, kiểm drift; Vercel deploy preview |
 | Merge vào `main` | GitHub Actions, Vercel | Chạy migration lên project main, kiểm drift; Vercel deploy production |
 | Một job đỏ | GitHub | Email và GitHub Mobile cho người push hoặc mở PR; job theo lịch báo cho người sửa `cron` gần nhất |
