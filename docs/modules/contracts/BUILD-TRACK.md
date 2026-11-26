@@ -22,9 +22,19 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 1. [ ] Gói 4 và Gói 5 review chữ ký MVP. Báo nhóm trước khi merge vào `dev`.
 2. [ ] Đồng bộ trạng thái K3-01 đến K3-08 lên Google Sheet khi có kết nối Google Drive. Giữ K3-02 và K3-04 ở trạng thái không áp dụng.
 3. [ ] Tích hợp các factory real của Gói 4 rồi kiểm tra cấu hình từ server đến consumer của Gói 5.
-4. [ ] Rà diff `package-lock.json` đã có trong nhánh với Gói 1 trước khi merge. Xác nhận CI cài dependency và build với lockfile của PR.
+4. [ ] Xác nhận CI của PR #8 qua với lockfile đã khôi phục từ `dev`.
 
 ## 3. Nhật ký phiên
+
+### 2026-11-26 11:32 — Sửa `npm ci` của PR #8
+
+**Người / agent:** Phú / Codex
+
+Đã tái hiện `EUSAGE` do thiếu bốn mục `@emnapi` trên Ubuntu. `package.json` của PR trùng với `dev`, nên khôi phục
+`package-lock.json` từ `dev` để bỏ diff lockfile của commit `48aa9d1`.
+
+**Kiểm chứng.** Checkout sạch trên Ubuntu với Node `24.22.3` và npm `11.19.1` chạy `npm ci`, lint, typecheck,
+kiểm tra định dạng và build thành công. Vitest qua 42/42 test trong 5 file.
 
 ### 2026-11-26 11:18 — Final review và bàn giao Gói 3
 
