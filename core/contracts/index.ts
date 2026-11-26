@@ -60,6 +60,8 @@ export interface RoomPort {
   leave(): Promise<void>;
   /** A snapshot of the participants currently in the room, including the local participant. */
   participants(): readonly RoomParticipant[];
+  /** Subscribe to membership or attribute changes. Read the new snapshot with participants(). */
+  onParticipantsChanged(listener: () => void): Unsubscribe;
   /** The caller retains ownership of the track and stops it when finished. */
   publishTrack(track: MediaStreamTrack): Promise<void>;
 }

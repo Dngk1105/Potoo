@@ -6,8 +6,9 @@ const peers: ReturnType<typeof createMockRealtime>[] = [];
 function peer(
   identity: string,
   getHostIdentity: MockRealtimeOptions["getHostIdentity"] = () => "host",
+  onRoomStateChanged?: MockRealtimeOptions["onRoomStateChanged"],
 ) {
-  const adapter = createMockRealtime({ identity, getHostIdentity });
+  const adapter = createMockRealtime({ identity, getHostIdentity, onRoomStateChanged });
   peers.push(adapter);
   return adapter;
 }
@@ -80,6 +81,80 @@ test("sends all documented events and resolves sender metadata separately", asyn
   expect(ownStarts).not.toHaveBeenCalled();
 });
 
+test("notifies subscribers of local and remote membership changes until unsubscribe", async () => {
+  const roomId = crypto.randomUUID();
+  const host = peer("host");
+  const member = peer("member");
+  const changed = vi.fn(() => host.room.participants().map(({ identity }) => identity));
+  const unsubscribe = host.room.onParticipantsChanged(changed);
+
+  await host.room.join({ roomId });
+  expect(changed).toHaveBeenCalledTimes(1);
+  await member.room.join({ roomId });
+  await vi.waitFor(() => expect(changed).toHaveBeenCalledTimes(2));
+  expect(changed).toHaveLastReturnedWith(["host", "member"]);
+
+  await member.room.leave();
+  await vi.waitFor(() => expect(changed).toHaveBeenCalledTimes(3));
+  expect(changed).toHaveLastReturnedWith(["host"]);
+  await host.room.leave();
+  expect(changed).toHaveBeenCalledTimes(4);
+  expect(changed).toHaveLastReturnedWith([]);
+
+  unsubscribe();
+  await host.room.join({ roomId });
+  expect(changed).toHaveBeenCalledTimes(4);
+});
+
+test("notifies on a role change from room state and detaches the source when leaving", async () => {
+  const roomId = crypto.randomUUID();
+  let hostIdentity = "host";
+  let notifyRoomState: (() => void) | undefined;
+  const detachRoomState = vi.fn();
+  const subscribe = vi.fn((_roomId: string, listener: () => void) => {
+    notifyRoomState = listener;
+    return detachRoomState;
+  });
+  const host = peer("host", () => hostIdentity);
+  const member = peer("member", () => hostIdentity, subscribe);
+
+  await host.room.join({ roomId });
+  await member.room.join({ roomId });
+  await vi.waitFor(() => expect(member.room.participants()).toHaveLength(2));
+  expect(subscribe).toHaveBeenCalledExactlyOnceWith(roomId, expect.any(Function));
+
+  const changed = vi.fn(() => member.room.participants());
+  member.room.onParticipantsChanged(changed);
+  notifyRoomState?.();
+  expect(changed).not.toHaveBeenCalled();
+  hostIdentity = "member";
+  notifyRoomState?.();
+  expect(changed).toHaveBeenCalledTimes(1);
+  expect(changed).toHaveLastReturnedWith([
+    { identity: "member", attributes: { role: "host" } },
+    { identity: "host", attributes: { role: "member" } },
+  ]);
+
+  const starts = vi.fn();
+  const unsubscribe = host.bus.on("START_SHOT", starts);
+  const shot = { type: "START_SHOT" as const, payload: { round: 1, delayMs: 500 } };
+  await expect(host.bus.send(shot)).rejects.toThrow("Only the host");
+  await member.bus.send(shot);
+  await vi.waitFor(() =>
+    expect(starts).toHaveBeenCalledExactlyOnceWith(shot.payload, {
+      identity: "member",
+      role: "host",
+    }),
+  );
+  unsubscribe();
+
+  await member.room.leave();
+  expect(detachRoomState).toHaveBeenCalledOnce();
+  notifyRoomState?.();
+  expect(changed).toHaveBeenCalledTimes(2);
+  expect(changed).toHaveLastReturnedWith([]);
+});
+
 test("rejects START_SHOT from a member and checks the recipient's current host state", async () => {
   const roomId = crypto.randomUUID();
   let hostIdentity = "host";
@@ -150,4 +225,79 @@ test("publishing and sending require a room and leaving preserves caller-owned t
   await host.room.leave();
   expect(stop).not.toHaveBeenCalled();
   await expect(host.bus.send({ type: "ROOM_CHANGED" })).rejects.toThrow("Join a room");
+});
+
+test("switches rooms without exposing a disconnected snapshot and keeps the old room on setup failure", async () => {
+  const firstRoom = crypto.randomUUID();
+  const secondRoom = crypto.randomUUID();
+  const failedRoom = crypto.randomUUID();
+  const detach = vi.fn();
+  const host = peer(
+    "host",
+    (roomId) => {
+      if (roomId === failedRoom) throw new Error("Unavailable room state");
+      return roomId === firstRoom ? "host" : null;
+    },
+    () => detach,
+  );
+
+  await host.room.join({ roomId: firstRoom });
+  const changed = vi.fn(() => host.room.participants());
+  const unsubscribe = host.room.onParticipantsChanged(changed);
+  try {
+    await expect(host.room.join({ roomId: failedRoom })).rejects.toThrow("Unavailable room state");
+    expect(detach).toHaveBeenCalledOnce();
+    expect(changed).not.toHaveBeenCalled();
+    expect(host.room.participants()).toEqual([{ identity: "host", attributes: { role: "host" } }]);
+    await expect(host.bus.send({ type: "ROOM_CHANGED" })).resolves.toBeUndefined();
+
+    await host.room.join({ roomId: secondRoom });
+    expect(detach).toHaveBeenCalledTimes(2);
+    expect(changed).toHaveBeenCalledOnce();
+    expect(changed).toHaveLastReturnedWith([{ identity: "host", attributes: { role: "member" } }]);
+  } finally {
+    unsubscribe();
+  }
+});
+
+test("delivers to multiple listeners and drops packets queued for a connection that leaves", async () => {
+  const roomId = crypto.randomUUID();
+  const host = peer("host");
+  const member = peer("member");
+  const observer = peer("observer");
+  const first = vi.fn();
+  const second = vi.fn();
+  const observed = vi.fn();
+  const unsubscribeFirst = member.bus.on("READY", first);
+  const unsubscribeSecond = member.bus.on("READY", second);
+  const unsubscribeObserver = observer.bus.on("READY", observed);
+
+  try {
+    await Promise.all([
+      host.room.join({ roomId }),
+      member.room.join({ roomId }),
+      observer.room.join({ roomId }),
+    ]);
+    await host.bus.send({ type: "READY", payload: { ready: true } });
+    await vi.waitFor(() => {
+      expect(first).toHaveBeenCalledOnce();
+      expect(second).toHaveBeenCalledOnce();
+      expect(observed).toHaveBeenCalledOnce();
+    });
+
+    unsubscribeFirst();
+    await host.bus.send({ type: "READY", payload: { ready: false } });
+    await vi.waitFor(() => expect(second).toHaveBeenCalledTimes(2));
+    expect(first).toHaveBeenCalledOnce();
+
+    const sending = host.bus.send({ type: "READY", payload: { ready: true } });
+    await member.room.leave();
+    await sending;
+    await vi.waitFor(() => expect(observed).toHaveBeenCalledTimes(3));
+    expect(second).toHaveBeenCalledTimes(2);
+  } finally {
+    unsubscribeFirst();
+    unsubscribeSecond();
+    unsubscribeObserver();
+  }
 });

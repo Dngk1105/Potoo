@@ -5,6 +5,7 @@ import type {
   RoomEventPayloads,
   RoomEventSender,
   RoomPort,
+  Unsubscribe,
 } from "@/core/contracts";
 
 export type MockRealtimeOptions = {
@@ -12,6 +13,8 @@ export type MockRealtimeOptions = {
   identity: string;
   /** Read the current host from room state or a fixture shared by the test clients. */
   getHostIdentity: (roomId: string) => string | null;
+  /** Notify after the room state used by getHostIdentity changes. */
+  onRoomStateChanged?: (roomId: string, listener: () => void) => Unsubscribe;
 };
 
 type Connection = {
@@ -19,6 +22,8 @@ type Connection = {
   channel: BroadcastChannel;
   id: string;
   peers: Map<string, string>;
+  visibleHost: string | null;
+  unsubscribeRoomState?: Unsubscribe;
 };
 
 type Delivery = { event: RoomEvent; sender: RoomEventSender };
@@ -54,11 +59,16 @@ function readEvent(value: unknown): RoomEvent | undefined {
 }
 
 /** Create one pair per tab or simulated participant. Join and leave through the room port. */
-export function createMockRealtime({ identity, getHostIdentity }: MockRealtimeOptions): {
+export function createMockRealtime({
+  identity,
+  getHostIdentity,
+  onRoomStateChanged,
+}: MockRealtimeOptions): {
   room: RoomPort;
   bus: RoomBus;
 } {
   const deliveries = new EventTarget();
+  const participantChanges = new EventTarget();
   let connection: Connection | undefined;
 
   function requireConnection(): Connection {
@@ -68,6 +78,25 @@ export function createMockRealtime({ identity, getHostIdentity }: MockRealtimeOp
 
   function roleOf(roomId: string, participantIdentity: string): ParticipantRole {
     return participantIdentity === getHostIdentity(roomId) ? "host" : "member";
+  }
+
+  function hasParticipant(joined: Connection, participantIdentity: string) {
+    if (participantIdentity === identity) return true;
+    for (const peerIdentity of joined.peers.values()) {
+      if (peerIdentity === participantIdentity) return true;
+    }
+    return false;
+  }
+
+  function notifyParticipantsChanged(joined: Connection, membershipChanged: boolean) {
+    if (connection !== joined) return;
+    const hostIdentity = getHostIdentity(joined.roomId);
+    const visibleHost =
+      hostIdentity !== null && hasParticipant(joined, hostIdentity) ? hostIdentity : null;
+    if (!membershipChanged && joined.visibleHost === visibleHost) return;
+
+    joined.visibleHost = visibleHost;
+    participantChanges.dispatchEvent(new Event("change"));
   }
 
   function announce(joined: Connection, kind: "join" | "present") {
@@ -82,14 +111,23 @@ export function createMockRealtime({ identity, getHostIdentity }: MockRealtimeOp
 
     if (kind === "join" || kind === "present") {
       if (typeof data.identity !== "string" || !data.identity) return;
-      if (!joined.peers.has(connectionId)) joined.peers.set(connectionId, data.identity);
+      let added = false;
+      if (!joined.peers.has(connectionId)) {
+        added = !hasParticipant(joined, data.identity);
+        joined.peers.set(connectionId, data.identity);
+      }
       // Existing peers announce themselves once so late joiners can discover them.
       if (kind === "join") announce(joined, "present");
+      notifyParticipantsChanged(joined, added);
       return;
     }
 
     if (kind === "leave") {
+      const leavingIdentity = joined.peers.get(connectionId);
       joined.peers.delete(connectionId);
+      if (leavingIdentity && !hasParticipant(joined, leavingIdentity)) {
+        notifyParticipantsChanged(joined, true);
+      }
       return;
     }
 
@@ -108,6 +146,15 @@ export function createMockRealtime({ identity, getHostIdentity }: MockRealtimeOp
     );
   }
 
+  function closeConnection(joined: Connection) {
+    try {
+      joined.channel.postMessage({ kind: "leave", connectionId: joined.id });
+    } finally {
+      joined.channel.close();
+      joined.unsubscribeRoomState?.();
+    }
+  }
+
   function disconnect() {
     const joined = connection;
     if (!joined) return;
@@ -115,9 +162,9 @@ export function createMockRealtime({ identity, getHostIdentity }: MockRealtimeOp
     connection = undefined;
     globalThis.window?.removeEventListener("pagehide", disconnect);
     try {
-      joined.channel.postMessage({ kind: "leave", connectionId: joined.id });
+      closeConnection(joined);
     } finally {
-      joined.channel.close();
+      participantChanges.dispatchEvent(new Event("change"));
     }
   }
 
@@ -125,25 +172,36 @@ export function createMockRealtime({ identity, getHostIdentity }: MockRealtimeOp
     async join({ roomId }) {
       if (!roomId || !identity) throw new Error("Mock realtime requires a room and an identity.");
       if (connection?.roomId === roomId) return;
-      disconnect();
 
       const joined: Connection = {
         roomId,
         id: crypto.randomUUID(),
         channel: new BroadcastChannel(`potoo:mock-realtime:${roomId}`),
         peers: new Map(),
+        visibleHost: null,
       };
       joined.channel.addEventListener("message", (message: MessageEvent<unknown>) => {
         receive(joined, message.data);
       });
       try {
+        joined.unsubscribeRoomState = onRoomStateChanged?.(roomId, () => {
+          notifyParticipantsChanged(joined, false);
+        });
+        joined.visibleHost = getHostIdentity(roomId) === identity ? identity : null;
         announce(joined, "join");
       } catch (error) {
         joined.channel.close();
+        joined.unsubscribeRoomState?.();
         throw error;
       }
+      const previous = connection;
       connection = joined;
       globalThis.window?.addEventListener("pagehide", disconnect);
+      try {
+        if (previous) closeConnection(previous);
+      } finally {
+        participantChanges.dispatchEvent(new Event("change"));
+      }
     },
     async leave() {
       disconnect();
@@ -157,6 +215,11 @@ export function createMockRealtime({ identity, getHostIdentity }: MockRealtimeOp
         identity: participantIdentity,
         attributes: { role: participantIdentity === hostIdentity ? "host" : "member" },
       }));
+    },
+    onParticipantsChanged(listener) {
+      const subscription = () => listener();
+      participantChanges.addEventListener("change", subscription);
+      return () => participantChanges.removeEventListener("change", subscription);
     },
     async publishTrack() {
       // The mock simulates publication; the caller owns the track and its lifecycle.

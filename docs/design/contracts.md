@@ -1,7 +1,7 @@
 # Port, plugin và FrameManifest
 
-5 người code song song. UI không gọi thẳng SDK của LiveKit hay webcam, mà gọi port trong `core/contracts/`. Mỗi port có
-bản real và bản mock, chọn bằng `.env`. Database luôn chạy Supabase thật (local hoặc cloud).
+5 người code song song. UI gọi port trong `core/contracts/` để dùng LiveKit, webcam, Auth và Storage. Cặp port realtime
+và `MediaSource` có bản real và mock, chọn bằng `.env`. Auth, Storage và database dùng Supabase (local hoặc cloud).
 
 ## 1. Cái gì đi qua port
 
@@ -21,15 +21,30 @@ LiveKit và webcam mới chạy được.
 | Port | Hàm | Real | Mock |
 |---|---|---|---|
 | `AuthPort` | `currentUser`, `signIn`, `signOut`, `onChange` | Supabase Auth (local hoặc cloud) | Không có. Trang `/dev` có nút đăng nhập nhanh 4 user trong seed |
-| `RoomPort` | `join`, `leave`, `participants`, `publishTrack` | LiveKit | `BroadcastChannel` giữa các tab cùng máy |
+| `RoomPort` | `join`, `leave`, `participants`, `onParticipantsChanged`, `publishTrack` | LiveKit | `BroadcastChannel` giữa các tab cùng máy |
 | `RoomBus` | `send`, `on` | Data packet reliable của LiveKit | `BroadcastChannel` |
 | `StoragePort` | `upload`, `getUrl`, `remove` | Supabase Storage; upload lỗi thì lưu vào IndexedDB, đồng bộ lại khi có mạng | Không có |
 | `MediaSource` | `getStream` | Webcam qua `getUserMedia` | Video `.mp4` chạy lặp |
 
 - `participants` của `RoomPort` trả cả participant attribute `role`.
-- Chọn adapter riêng cho từng port bằng `.env`: được dùng LiveKit thật với video mock, hoặc ngược lại.
+- UI gọi `onParticipantsChanged` để nhận thay đổi khi participant vào, rời room hoặc đổi attribute, rồi đọc snapshot mới
+  qua `participants()`. Phương thức trả về hàm hủy đăng ký.
+- `RoomPort` và `RoomBus` dùng cùng một kết nối và cùng cấu hình `REALTIME_ADAPTER`. Chọn `MediaSource` độc lập bằng `MEDIA_ADAPTER`.
 - Room dùng mock: Route Handler bỏ qua lời gọi LiveKit server API.
 - `AuthPort` và `StoragePort` không có mock: Supabase local đã chạy offline, có Auth và Storage.
+- Booth giữ một `MediaStream` cho preview, publish và xử lý frame. Booth dừng toàn bộ track khi rời booth. Adapter
+  giải phóng tài nguyên nội bộ của nguồn media khi track dừng.
+
+| `REALTIME_ADAPTER` | `MEDIA_ADAPTER` | Kết quả |
+|---|---|---|
+| `real` | `real` | LiveKit và webcam |
+| `real` | `mock` | LiveKit và video mẫu |
+| `mock` | `real` | `BroadcastChannel` và webcam |
+| `mock` | `mock` | `BroadcastChannel` và video mẫu |
+
+Server gọi `readAdapterConfig()` rồi truyền cấu hình qua props. Client giữ một `createAdapterSelector()` cho mỗi phạm vi sử dụng.
+Selector tạo cặp realtime hoặc `MediaSource` ở lần gọi đầu tiên và tái sử dụng kết quả trong phạm vi đó. Gói 4 cung cấp factory
+real tương ứng tại nơi tích hợp. Selector báo lỗi nếu chế độ `real` thiếu factory.
 
 ## 3. Plugin
 

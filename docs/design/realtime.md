@@ -47,6 +47,7 @@ host, ghi DB, rồi gọi LiveKit server API khi lệnh cần.
 | Host rời room | Webhook `participant_left`: chuyển host cho member vào sớm nhất còn trong room, ghi DB, gọi `RoomService.UpdateParticipant` đổi attribute `role` | Event `ParticipantAttributesChanged` của LiveKit tới mọi client |
 
 - Client tải lại state từ DB khi nhận `ROOM_CHANGED` hoặc khi attribute `role` của một participant đổi.
+- UI nhận thay đổi participant qua `RoomPort.onParticipantsChanged` và đọc role mới qua `participants()`.
 - `ROOM_CHANGED` không mang dữ liệu, nên packet giả chỉ gây một lần tải lại.
 - `livekit-server --dev` ở local có cùng server API và gọi được webhook về `localhost`. LiveKit Cloud không gọi tới được máy local.
 - Adapter mock (không có LiveKit): Route Handler bỏ qua lời gọi LiveKit server API. Người bị kick biết qua `kicked_at` khi tải lại state.
@@ -85,6 +86,9 @@ chỉ có hiệu lực khi JWT của user đó hết hạn.
 
 Adapter mock của `RoomPort` và `RoomBus` dùng `BroadcastChannel` giữa các tab cùng máy. Mock giữ đúng luật của bản
 real: chỉ chấp nhận `START_SHOT` từ participant có role `host`.
+
+Adapter mock nhận thông báo khi state của room đổi để cập nhật role trong snapshot. Adapter real có thể dùng các event
+participant của LiveKit cho cùng subscription.
 
 ## 8. Giới hạn gói free
 
