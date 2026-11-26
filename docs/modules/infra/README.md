@@ -1,6 +1,6 @@
 # Gói 1: Thiết kế chung, repo, hạ tầng và CI/CD
 
-Mã checklist: `K0-01` đến `K1-07`. Người phụ trách: Dũng.
+Mã checklist: `K0-01` đến `K1-07`, `K6-01` đến `K6-06`. Người phụ trách: Dũng.
 
 | | |
 |---|---|

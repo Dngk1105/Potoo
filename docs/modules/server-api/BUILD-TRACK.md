@@ -8,19 +8,19 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 
 | Mã | Việc | Trạng thái | File | Ghi chú |
 |---|---|---|---|---|
-| K2-07 | Route Handler cấp token LiveKit có `role` | [ ] | `app/api/` | Chuyển từ Gói 2 |
-| K4-01 | Real Supabase Auth | [ ] | `core/adapters/real/` | |
-| K4-02 | Real `RoomBus` bằng LiveKit data packet | [ ] | `core/adapters/real/` | |
-| K4-03 | Real `RoomPort` bằng LiveKit | [ ] | `core/adapters/real/` | Sheet có screen share: không cần |
-| K4-04 | Real Supabase Storage | [ ] | `core/adapters/real/` | Upload lỗi lưu IndexedDB, đồng bộ lại |
-| K4-05 | Route Handler lệnh của host | [ ] | `app/api/` | Sheet ghi "CRUD rooms": thêm kick, đổi frame, xếp slot, chuyển host |
-| K4-06 | Route Handler shot, strip | [ ] | `app/api/` | Thêm mở strip bằng `share_token` |
-| K4-07 | Webhook LiveKit | [ ] | `app/api/` | `participant_left`: chuyển host. Kiểm chữ ký webhook |
-| K4-08 | Test tích hợp adapter real | [ ] | | |
+| K2-07 | Route Handler cấp token LiveKit có `role` | [ ] | `app/api/` | Bảo. Chuyển từ Gói 2 |
+| K4-01 | Real Supabase Auth | [ ] | `core/adapters/real/` | Phú |
+| K4-02 | Real `RoomBus` bằng LiveKit data packet | [ ] | `core/adapters/real/` | Bảo |
+| K4-03 | Real `RoomPort` bằng LiveKit | [ ] | `core/adapters/real/` | Bảo. Không có screen share |
+| K4-04 | Real Supabase Storage | [ ] | `core/adapters/real/` | Phú. Upload lỗi lưu IndexedDB, đồng bộ lại |
+| K4-05 | Route Handler lệnh của host | [ ] | `app/api/` | Bảo. Ngoài tạo room: kick, đổi frame, xếp slot, chuyển host |
+| K4-06 | Route Handler shot, strip | [ ] | `app/api/` | Bảo. Thêm mở strip bằng `share_token` |
+| K4-07 | Webhook LiveKit | [ ] | `app/api/` | Bảo. `participant_left`: chuyển host. Kiểm chữ ký webhook. Dũng đăng ký URL webhook trên LiveKit Cloud |
+| K4-08 | Test tích hợp adapter real | [ ] | | Bảo |
 
 ## 2. Cần làm tiếp
 
-1. [ ] Chọn người phụ trách Gói 4
+1. [ ] Bảo, Quân review chữ ký `core/contracts/` với Phú
 2. [ ] Thêm việc cho real `MediaSource` (webcam) vào sheet
 
 ## 3. Nhật ký phiên
@@ -41,8 +41,8 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 
 | Ngày | Nội dung | Chờ ai |
 |---|---|---|
-| 2026-11-19 | Real `MediaSource` (webcam) chưa có mã việc trên sheet | Người phụ trách Gói 4 |
-| 2026-11-19 | Đường dẫn các Route Handler | Người phụ trách Gói 4 |
+| 2026-11-19 | Real `MediaSource` (webcam) chưa có mã việc trên sheet | Phú, Dũng |
+| 2026-11-19 | Đường dẫn các Route Handler | Bảo |
 | 2026-11-19 | `core/contracts/` | Gói 3 |
 
 ## Cập nhật thế nào

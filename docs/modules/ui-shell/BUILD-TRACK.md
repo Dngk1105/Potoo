@@ -8,7 +8,7 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 
 | Mã | Việc | Trạng thái | File | Ghi chú |
 |---|---|---|---|---|
-| K5-01 | Thư viện component, token, design system | [ ] | `core/ui/` | Sheet ghi shadcn/ui: Gói 5 chọn lại |
+| K5-01 | Thư viện component, token, design system | [ ] | `core/ui/` | Quân. Sheet ghi shadcn/ui: Gói 5 chọn lại |
 | K5-02 | Layout, navigation | [ ] | `app/layout.tsx` | |
 | K5-03 | Đăng nhập, đăng ký, route guard | [ ] | `app/(auth)/` | Next 16: `middleware.ts` đổi tên thành `proxy.ts` |
 | K5-04 | Sảnh tạo room, vào room | [ ] | `modules/room/` | |
@@ -19,8 +19,9 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 
 ## 2. Cần làm tiếp
 
-1. [ ] Chọn người phụ trách Gói 5
-2. [ ] Chốt các mục "Gói 5 tự quyết" trong `README.md`
+1. [ ] Quân review chữ ký `core/contracts/` với Phú
+2. [ ] K5-05 trang `/dev/*`: Dũng chờ cho K6-01
+3. [ ] Chốt các mục "Gói 5 tự quyết" trong `README.md`
 
 ## 3. Nhật ký phiên
 
@@ -40,7 +41,7 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 
 | Ngày | Nội dung | Chờ ai |
 |---|---|---|
-| 2026-11-19 | Thư viện component, đường token Figma → code, nơi duyệt component | Người phụ trách Gói 5 |
+| 2026-11-19 | Thư viện component, đường token Figma → code, nơi duyệt component | Quân |
 | 2026-11-19 | File Figma có Variables light/dark, text style, component có variant | Người thiết kế |
 
 ## Cập nhật thế nào

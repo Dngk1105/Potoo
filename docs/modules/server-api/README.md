@@ -1,6 +1,6 @@
 # Gói 4: Server API và adapter real
 
-Người phụ trách: chưa có. Mã checklist: `K2-07`, `K4-01` đến `K4-08`.
+Người phụ trách: Bảo; Phú làm K4-01, K4-04. Mã checklist: `K2-07`, `K4-01` đến `K4-08`.
 
 | | |
 |---|---|

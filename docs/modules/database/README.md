@@ -1,6 +1,6 @@
 # Gói 2: Database và phân quyền
 
-Người phụ trách: chưa có. Mã checklist: `K2-01` đến `K2-06`.
+Người phụ trách: Dũng (K2-01 đến K2-03), My (K2-04 đến K2-06). Mã checklist: `K2-01` đến `K2-06`.
 
 | | |
 |---|---|
