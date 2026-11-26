@@ -34,7 +34,7 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 | Mã | Việc | Trạng thái | File | Ghi chú |
 |---|---|---|---|---|
 | K1-01 | Lefthook | [x] | `lefthook.yml`, `vitest.config.mts` | Pre-commit: Prettier file đã stage. Pre-push: lint, typecheck, format, test. Thêm Vitest 5 |
-| K1-02 | GitHub Actions CI | [x] | `.github/workflows/ci.yml` | PR vào `dev`, `staging` và push lên `dev`: lint, typecheck, format, test, build. Lần chạy đầu xanh. Chưa có test RLS, `db diff`, báo nhóm chat (mục 4) |
+| K1-02 | GitHub Actions CI | [x] | `.github/workflows/ci.yml` | PR vào `dev`, `staging` và push lên `dev`: lint, typecheck, format, test, build. Lần chạy đầu xanh. Job `database`: `db:check`, `supabase db reset` ở PR vào `dev` và push lên `dev`. Chưa có test RLS (chờ K2-05). `db diff` chạy trong `migrate.yml`. Báo nhóm chat: mục 4 |
 | K1-03 | Vercel | [x] | `vercel.json` | `potoo-app.vercel.app` (`main`), `potoo-staging.vercel.app` (`staging`). Chỉ 2 nhánh này deploy. Biến preview chỉ gán nhánh `staging` |
 | K1-04 | Supabase staging và main | [x] | `supabase/config.toml` | `potoo-staging`, `potoo-main`, Singapore. CLI 3.2.0 qua npm. `project_id = "potoo"` |
 | K1-05 | LiveKit Cloud | [x] | `package.json` (`npm run livekit`) | 2 project Cloud gói Build; local chạy image Docker 1.13.11 `--dev`. Bỏ prefix tên room |
