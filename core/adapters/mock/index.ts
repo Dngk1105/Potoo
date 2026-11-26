@@ -1,2 +1,2 @@
 // Mock adapters: RoomPort, RoomBus, MediaSource.
-export {};
+export { createMockRealtime, type MockRealtimeOptions } from "./realtime";
