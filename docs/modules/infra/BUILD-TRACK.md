@@ -62,6 +62,22 @@ Việc thiếu so với sheet: Google OAuth, báo CI đỏ, giữ project Supaba
 
 ## 3. Nhật ký phiên
 
+### 2026-11-26: CI chạy migration, luật version migration
+
+**Người / agent:** Dũng / Claude
+
+| Việc | Trạng thái |
+|---|---|
+| `ci.yml` thêm job `database`: `db:check`, `supabase start` (chỉ DB, auth, storage), `supabase db reset` | [x] |
+| Push thẳng lên `dev` cũng chạy `db:check`, so với `github.event.before` | [x] |
+| `scripts/check-migrations.mjs`: chặn sửa/xoá migration cũ, sai tên, timestamp cũ hơn `dev` | [x] |
+| `package.json`: `db:start`, `db:stop`, `db:reset`, `db:new`, `db:check`; Lefthook pre-push chạy `db:check` | [x] |
+| `environments.md` mục 3, 4: lệnh local, luật tránh xung đột version | [x] |
+
+**Kiểm chứng:** `npm run db:check` trên nhánh: ok. Worktree thử: script báo đủ 3 lỗi (timestamp cũ, sửa migration cũ, sai tên). Local `supabase start -x ...` giống CI rồi `npm run db:reset`: áp 3 migration, xong. Job CI chưa chạy trên GitHub.
+
+**Cần follow-up:** thêm bước test RLS vào job `database` khi có K2-05. Báo nhóm luật version migration mới.
+
 ### 2026-11-26: Phân công Giai đoạn 1, sửa sheet cho khớp docs
 
 **Người / agent:** Dũng / Claude

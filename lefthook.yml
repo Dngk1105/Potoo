@@ -19,3 +19,6 @@ pre-push:
       run: npm run format:check
     - name: test
       run: npm test
+    - name: migrations
+      glob: "supabase/migrations/*.sql"
+      run: git fetch -q origin dev && npm run db:check
