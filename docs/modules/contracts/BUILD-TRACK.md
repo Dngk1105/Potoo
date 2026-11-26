@@ -10,7 +10,7 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 |---|---|---|---|---|
 | K3-01 | `core/contracts/` | [x] | `core/contracts/index.ts` | MVP đã qua kiểm chứng. Gói 4 và Gói 5 review trước khi merge |
 | K3-02 | Mock `AuthPort` | — | | Bỏ: dùng Supabase local |
-| K3-03 | Mock `RoomPort`, `RoomBus` | [x] | `core/adapters/mock/` | MVP dùng `BroadcastChannel` theo room. Sheet ghi `core/ports/mock/` |
+| K3-03 | Mock `RoomPort`, `RoomBus` | [x] | `core/adapters/mock/` | MVP dùng `BroadcastChannel` theo room |
 | K3-04 | Mock `StoragePort` | — | | Bỏ: dùng Supabase local |
 | K3-05 | Mock `MediaSource` | [x] | `core/adapters/mock/media-source.ts` | Video `.mp4` chạy lặp. Đã kiểm tra trên Chrome headless |
 | K3-06 | Chọn adapter theo `.env` | [~] | `core/adapters/index.ts` | Đã kiểm chứng selector. Chờ Gói 4 cung cấp factory real để tích hợp |
@@ -20,11 +20,21 @@ Nguồn mã việc: Google Sheet "Checklist khung". Sheet và file này lệch n
 ## 2. Cần làm tiếp
 
 1. [ ] Gói 4 và Gói 5 review chữ ký MVP. Báo nhóm trước khi merge vào `dev`.
-2. [ ] Đồng bộ trạng thái K3-01 đến K3-08 lên Google Sheet khi có kết nối Google Drive. Giữ K3-02 và K3-04 ở trạng thái không áp dụng.
+2. [x] Đồng bộ K3-01 đến K3-08 lên Google Sheet. K3-02 và K3-04 giữ trạng thái không áp dụng.
 3. [ ] Tích hợp các factory real của Gói 4 rồi kiểm tra cấu hình từ server đến consumer của Gói 5.
 4. [ ] Xác nhận CI của PR #8 qua với lockfile đã khôi phục từ `dev`.
 
 ## 3. Nhật ký phiên
+
+### 2026-11-26 12:03 — Đồng bộ checklist Gói 3
+
+**Người / agent:** Phú / Codex
+
+Đã cập nhật hạng mục, ghi chú, DoD và đường dẫn của K3-01 đến K3-08 trong tab «Checklist khung».
+K3-08 phụ thuộc K3-03 và K3-05. K3-06 đang làm, chờ factory real từ Gói 4.
+
+**Kiểm chứng.** Google Drive đọc lại `A33:I40` và xác nhận cả 8 dòng khớp nội dung cập nhật.
+Google Sheets hiển thị các ô đã sửa. K3-02 và K3-04 giữ «Thay đổi / Bỏ qua» và quy tắc dropdown hiện có.
 
 ### 2026-11-26 11:32 — Sửa `npm ci` của PR #8
 
