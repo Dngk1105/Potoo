@@ -1,2 +1,2 @@
-// Picks mock or real adapter per port from .env.
-export {};
+export { createAdapterSelector, type AdapterFactories, type RealtimeAdapters } from "./selector";
+export { createMockMediaSource, createMockRealtime, type MockRealtimeOptions } from "./mock";
