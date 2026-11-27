@@ -60,12 +60,15 @@ test("sends all documented events and resolves sender metadata separately", asyn
   await member.room.join({ roomId });
   await member.bus.send({ type: "READY", payload: { ready: true } });
   await member.bus.send({ type: "SHOT_UPLOADED", payload: { round: 1 } });
-  await host.bus.send({ type: "START_SHOT", payload: { round: 1, delayMs: 1000 } });
+  await host.bus.send({
+    type: "START_SHOT",
+    payload: { sessionId: "session", requestId: "request", round: 1, delayMs: 1000 },
+  });
   await host.bus.send({ type: "ROOM_CHANGED" });
 
   await vi.waitFor(() => {
     expect(starts).toHaveBeenCalledExactlyOnceWith(
-      { round: 1, delayMs: 1000 },
+      { sessionId: "session", requestId: "request", round: 1, delayMs: 1000 },
       { identity: "host", role: "host" },
     );
     expect(ready).toHaveBeenCalledExactlyOnceWith(
@@ -137,7 +140,10 @@ test("notifies on a role change from room state and detaches the source when lea
 
   const starts = vi.fn();
   const unsubscribe = host.bus.on("START_SHOT", starts);
-  const shot = { type: "START_SHOT" as const, payload: { round: 1, delayMs: 500 } };
+  const shot = {
+    type: "START_SHOT" as const,
+    payload: { sessionId: "session", requestId: "request", round: 1, delayMs: 500 },
+  };
   await expect(host.bus.send(shot)).rejects.toThrow("Only the host");
   await member.bus.send(shot);
   await vi.waitFor(() =>
@@ -169,7 +175,7 @@ test("rejects START_SHOT from a member and checks the recipient's current host s
 
   const forged = {
     type: "START_SHOT" as const,
-    payload: { round: 1, delayMs: 1000, role: "host" },
+    payload: { sessionId: "session", requestId: "request", round: 1, delayMs: 1000, role: "host" },
   };
   await expect(member.bus.send(forged)).rejects.toThrow("Only the host");
 

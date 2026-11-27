@@ -23,6 +23,8 @@ test("room events expose only the documented payloads", () => {
     "START_SHOT" | "READY" | "SHOT_UPLOADED" | "ROOM_CHANGED"
   >();
   expectTypeOf<RoomEventPayloads["START_SHOT"]>().toEqualTypeOf<{
+    sessionId: string;
+    requestId: string;
     round: number;
     delayMs: number;
   }>();
@@ -53,6 +55,12 @@ test("RoomBus keeps sender metadata separate and pairs each event with its paylo
   expectTypeOf(subscribe).returns.toEqualTypeOf<() => void>();
 });
 
+test("registration reports confirmation or a signed-in user", () => {
+  expectTypeOf<Awaited<ReturnType<AuthPort["signUp"]>>>().toEqualTypeOf<
+    { status: "confirmation-required" } | { status: "signed-in"; user: AuthUser }
+  >();
+});
+
 test("auth subscriptions report signed-in and signed-out users and can be cancelled", () => {
   type Listener = Parameters<AuthPort["onChange"]>[0];
 
@@ -72,6 +80,15 @@ test("storage operations expose a consistent failure result", () => {
   expectTypeOf<
     Extract<Awaited<ReturnType<StoragePort["remove"]>>, { ok: false }>
   >().toEqualTypeOf<Failure>();
+});
+
+test("storage consumers distinguish pending shots from remote uploads", () => {
+  type Success = Extract<Awaited<ReturnType<StoragePort["upload"]>>, { ok: true }>;
+  expectTypeOf<Success["data"]["status"]>().toEqualTypeOf<"uploaded" | "queued">();
+  expectTypeOf<Awaited<ReturnType<StoragePort["flushPending"]>>>().toEqualTypeOf<
+    | { ok: true; data: { uploaded: number; failed: number } }
+    | { ok: false; error: { message: string; code?: string } }
+  >();
 });
 
 test("frame manifests expose the documented canvas and slot fields", () => {

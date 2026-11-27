@@ -13,11 +13,18 @@ export type SignInInput =
 export type SignInResult =
   { status: "signed-in"; user: AuthUser } | { status: "redirect"; url: string };
 
+export type SignUpInput = { email: string; password: string; redirectTo?: string };
+
+export type SignUpResult =
+  { status: "confirmation-required" } | { status: "signed-in"; user: AuthUser };
+
 export type AuthChangeListener = (user: AuthUser | null) => void;
 
 export interface AuthPort {
   /** Returns null when signed out. Authentication errors reject the promise. */
   currentUser(): Promise<AuthUser | null>;
+  /** Register an email; a session may require email confirmation first. */
+  signUp(input: SignUpInput): Promise<SignUpResult>;
   /** The caller navigates to the returned URL to continue Google sign-in. */
   signIn(input: SignInInput): Promise<SignInResult>;
   signOut(): Promise<void>;
@@ -36,10 +43,16 @@ export type StorageUrlInput = StorageObject & { expiresInSeconds: number };
 export type StorageError = { message: string; code?: string };
 
 export type StorageResult<T> = { ok: true; data: T } | { ok: false; error: StorageError };
+export type StorageUploadResult = StorageObject & { status: "uploaded" | "queued" };
+export type StorageFlushResult = { uploaded: number; failed: number };
 
 export interface StoragePort {
-  /** Use the Blob MIME type when provided. */
-  upload(input: StorageUploadInput): Promise<StorageResult<StorageObject>>;
+  /** Queued means the shot is durable locally, not uploaded. */
+  upload(input: StorageUploadInput): Promise<StorageResult<StorageUploadResult>>;
+  /** Retry the current user's pending shots. */
+  flushPending(): Promise<StorageResult<StorageFlushResult>>;
+  /** Stop automatic retries and release browser listeners. */
+  dispose(): void;
   /** Return a signed URL for the object. */
   getUrl(input: StorageUrlInput): Promise<StorageResult<string>>;
   remove(object: StorageObject): Promise<StorageResult<void>>;
@@ -54,6 +67,16 @@ export type RoomParticipant = {
   readonly attributes: Readonly<Record<string, string | undefined> & { role: ParticipantRole }>;
 };
 
+export type RemoteMediaTrack = {
+  readonly participantIdentity: string;
+  readonly trackId: string;
+  readonly track: MediaStreamTrack;
+  /** Attach through the adapter so adaptive streaming can observe the element. */
+  attach(element: HTMLMediaElement): void;
+  /** Detach a previously attached element without stopping the remote track. */
+  detach(element: HTMLMediaElement): void;
+};
+
 export interface RoomPort {
   /** The real adapter obtains connection credentials for this room from the server. */
   join(input: RoomJoinInput): Promise<void>;
@@ -62,12 +85,16 @@ export interface RoomPort {
   participants(): readonly RoomParticipant[];
   /** Subscribe to membership or attribute changes. Read the new snapshot with participants(). */
   onParticipantsChanged(listener: () => void): Unsubscribe;
+  /** Snapshot of subscribed remote tracks; the adapter owns their lifecycle. */
+  remoteTracks(): readonly RemoteMediaTrack[];
+  /** Subscribe to remote track changes, then read the latest snapshot. */
+  onRemoteTracksChanged(listener: () => void): Unsubscribe;
   /** The caller retains ownership of the track and stops it when finished. */
   publishTrack(track: MediaStreamTrack): Promise<void>;
 }
 
 export type RoomEventPayloads = {
-  START_SHOT: { round: number; delayMs: number };
+  START_SHOT: { sessionId: string; requestId: string; round: number; delayMs: number };
   READY: { ready: boolean };
   SHOT_UPLOADED: { round: number };
   ROOM_CHANGED: undefined;
@@ -95,9 +122,9 @@ export interface RoomBus {
   /** Send the event to the current room using reliable delivery. */
   send(event: RoomEvent): Promise<void>;
   /**
-   * Resolve the sender from LiveKit's packet participant and current role attribute,
-   * or from participant state maintained by the mock adapter. Ignore sender claims in
-   * the event body. Deliver START_SHOT only when the resolved sender is a host.
+   * The real adapter obtains START_SHOT payload and sender from server verification
+   * and claim. Other events use the transport participant. The mock uses its room state.
+   * The caller retains requestId across START_SHOT retries.
    */
   on<Name extends RoomEventName>(type: Name, listener: RoomEventListener<Name>): Unsubscribe;
 }

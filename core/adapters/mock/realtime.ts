@@ -45,8 +45,16 @@ function readEvent(value: unknown): RoomEvent | undefined {
 
   switch (type) {
     case "START_SHOT": {
-      const { round, delayMs } = payload;
-      if (isNumber(round) && isNumber(delayMs)) return { type, payload: { round, delayMs } };
+      const { sessionId, requestId, round, delayMs } = payload;
+      if (
+        typeof sessionId === "string" &&
+        sessionId &&
+        typeof requestId === "string" &&
+        requestId &&
+        isNumber(round) &&
+        isNumber(delayMs)
+      )
+        return { type, payload: { sessionId, requestId, round, delayMs } };
       break;
     }
     case "READY":
@@ -220,6 +228,13 @@ export function createMockRealtime({
       const subscription = () => listener();
       participantChanges.addEventListener("change", subscription);
       return () => participantChanges.removeEventListener("change", subscription);
+    },
+    remoteTracks() {
+      // BroadcastChannel does not transfer media between tabs.
+      return [];
+    },
+    onRemoteTracksChanged() {
+      return () => {};
     },
     async publishTrack() {
       // The mock simulates publication; the caller owns the track and its lifecycle.
