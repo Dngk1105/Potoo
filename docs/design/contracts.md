@@ -20,16 +20,21 @@ LiveKit và webcam mới chạy được.
 
 | Port | Hàm | Real | Mock |
 |---|---|---|---|
-| `AuthPort` | `currentUser`, `signIn`, `signOut`, `onChange` | Supabase Auth (local hoặc cloud) | Không có. Trang `/dev` có nút đăng nhập nhanh 4 user trong seed |
-| `RoomPort` | `join`, `leave`, `participants`, `onParticipantsChanged`, `publishTrack` | LiveKit | `BroadcastChannel` giữa các tab cùng máy |
+| `AuthPort` | `currentUser`, `signUp`, `signIn`, `signOut`, `onChange` | Supabase Auth (local hoặc cloud) | Không có. Trang `/dev` có nút đăng nhập nhanh 4 user trong seed |
+| `RoomPort` | `join`, `leave`, `participants`, `onParticipantsChanged`, `remoteTracks`, `onRemoteTracksChanged`, `publishTrack` | LiveKit | `BroadcastChannel` giữa các tab cùng máy |
 | `RoomBus` | `send`, `on` | Data packet reliable của LiveKit | `BroadcastChannel` |
-| `StoragePort` | `upload`, `getUrl`, `remove` | Supabase Storage; upload lỗi thì lưu vào IndexedDB, đồng bộ lại khi có mạng | Không có |
+| `StoragePort` | `upload`, `getUrl`, `remove`, `flushPending`, `dispose` | Supabase Storage; shot upload lỗi thì lưu vào IndexedDB, đồng bộ lại khi có mạng | Không có |
 | `MediaSource` | `getStream` | Webcam qua `getUserMedia` | Video `.mp4` chạy lặp |
 
+- `StoragePort.upload` trả `uploaded` khi Storage xác nhận thành công, hoặc `queued` khi shot đã lưu IndexedDB. Lỗi lưu IndexedDB trả lỗi, không báo `queued`.
+- Chỉ shot tại `sessions/{sessionId}/{round}/{userId}.jpg` của user đang đăng nhập được lưu chờ. `flushPending` chỉ retry shot của user hiện tại và trả số thành công, thất bại. Adapter thử lại khi khởi tạo, khi user đổi và khi có mạng trở lại; caller gọi `dispose` khi không dùng adapter nữa.
+- Retry gặp object trùng: client tải object bằng quyền user và so sánh bytes. Chỉ xoá blob đã lưu khi upload thành công hoặc bytes trùng; lỗi kiểm tra giữ lại blob.
+- `signUp` đăng ký email và password. Supabase chưa cấp session: trả trạng thái chờ xác nhận email. Supabase cấp session: trả user đã đăng nhập.
 - `participants` của `RoomPort` trả cả participant attribute `role`.
+- `remoteTracks` trả snapshot track audio và video đang subscribe, kèm identity, track ID và hàm gắn, gỡ media element. UI dùng hàm gắn cho remote track để LiveKit theo dõi kích thước và độ hiện diện khi adaptive stream bật. `onRemoteTracksChanged` báo khi snapshot đổi. LiveKit quản lý vòng đời remote track; UI không dừng track đó. Mock không truyền media giữa các tab nên snapshot rỗng.
 - UI gọi `onParticipantsChanged` để nhận thay đổi khi participant vào, rời room hoặc đổi attribute, rồi đọc snapshot mới
   qua `participants()`. Phương thức trả về hàm hủy đăng ký.
-- `RoomPort` và `RoomBus` dùng cùng một kết nối và cùng cấu hình `REALTIME_ADAPTER`. Chọn `MediaSource` độc lập bằng `MEDIA_ADAPTER`.
+- `RoomPort` và `RoomBus` dùng cùng một kết nối và cùng cấu hình `REALTIME_ADAPTER`. Chọn `MediaSource` độc lập bằng `MEDIA_ADAPTER`. `START_SHOT` có `sessionId`, `requestId`, `round`, `delayMs`; caller giữ `requestId` khi retry. Adapter real chỉ phát event cho listener sau khi server xác minh chữ ký, state và claim. Mock kiểm tra role từ state giả lập, không cung cấp bảo đảm bảo mật.
 - Room dùng mock: Route Handler bỏ qua lời gọi LiveKit server API.
 - `AuthPort` và `StoragePort` không có mock: Supabase local đã chạy offline, có Auth và Storage.
 - Booth giữ một `MediaStream` cho preview, publish và xử lý frame. Booth dừng toàn bộ track khi rời booth. Adapter

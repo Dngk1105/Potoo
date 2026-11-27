@@ -17,7 +17,8 @@ bấm chụp. Member vào sau, mất mạng rồi vào lại, hoặc bị kick �
 |---|---|---|---|
 | State | frame, slot, settings, lock, danh sách member, host | Bảng `rooms`, `room_members` | Đọc DB qua TanStack Query |
 | Lệnh quyền | đổi frame, xếp slot, lock, kick, chuyển host | Route Handler kiểm tra quyền rồi ghi DB | API |
-| Event tức thời | `START_SHOT`, `READY`, `SHOT_UPLOADED` | Không lưu | Data packet của LiveKit |
+| Event chụp | `START_SHOT` | Event và claim trong DB; server xác thực | Route Handler và data packet của LiveKit |
+| Event tức thời khác | `READY`, `SHOT_UPLOADED` | Không lưu | Data packet của LiveKit |
 
 Không có message `ROOM_STATE`: member vào sau đọc state từ DB.
 
@@ -32,6 +33,8 @@ Không có message `ROOM_STATE`: member vào sau đọc state từ DB.
 - Token cấp với `canUpdateOwnMetadata = false`. Bật quyền này thì member tự sửa được attribute `role` của mình.
 - Chỉ server đổi attribute, bằng `RoomService.UpdateParticipant`.
 - Route Handler từ chối cấp token khi `room_members.kicked_at` khác null hoặc room đang lock.
+- Token cũ có thể khôi phục attribute sau khi đổi host. `START_SHOT` real phải được server ký, kiểm tra state hiện tại và claim chống replay; không dùng attribute làm bằng chứng đủ. Mock tiếp tục mô phỏng theo role để phát triển offline.
+- Token real và lệnh kick, chuyển host, leave real vẫn bị chặn vì event đã ký không thu hồi quyền media hoặc token cũ.
 
 ## 3. Lệnh quyền
 
@@ -60,19 +63,18 @@ host, ghi DB, rồi gọi LiveKit server API khi lệnh cần.
 
 | Event | Payload | Ai được gửi | Người nhận kiểm tra |
 |---|---|---|---|
-| `START_SHOT` | `round`, `delayMs` | host | Attribute `role` của người gửi là `host` |
+| `START_SHOT` | `sessionId`, `requestId`, `round`, `delayMs` | host | Real yêu cầu server xác minh chữ ký, state và claim; mock kiểm tra role giả lập |
 | `READY` | `ready` | Mọi member | |
 | `SHOT_UPLOADED` | `round` | Mọi member | |
 | `ROOM_CHANGED` | Không có | Client vừa gọi lệnh host thành công | Không kiểm tra; chỉ tải lại state |
 
-Packet không lưu trên server. Member vào giữa round không nhận `START_SHOT` của round đó và chờ round sau.
+Packet không lưu trên LiveKit. Server lưu metadata `START_SHOT` và claim để chống replay; chưa có job dọn event. Member vào giữa round không nhận `START_SHOT` của round đó và chờ round sau.
 
 ## 5. Countdown
 
 **Vấn đề:** mỗi máy nhận `START_SHOT` ở thời điểm khác nhau.
 
-**Cách xử lý:** mỗi máy chụp camera của chính mình, nên không cần đồng bộ đồng hồ. Máy nhận `START_SHOT` thì đếm
-`delayMs` rồi chụp. Các máy lệch nhau bằng chênh lệch độ trễ mạng giữa các máy.
+**Cách xử lý:** mỗi máy chụp camera của chính mình, nên không cần đồng bộ đồng hồ. Máy xác minh và claim `START_SHOT` thành công thì đếm `delayMs` rồi chụp. Các máy có thể lệch nhau do độ trễ packet và xác minh; không bảo đảm mọi máy nhận event.
 
 ## 6. Studio
 
@@ -84,8 +86,7 @@ chỉ có hiệu lực khi JWT của user đó hết hạn.
 
 ## 7. Adapter mock
 
-Adapter mock của `RoomPort` và `RoomBus` dùng `BroadcastChannel` giữa các tab cùng máy. Mock giữ đúng luật của bản
-real: chỉ chấp nhận `START_SHOT` từ participant có role `host`.
+Adapter mock của `RoomPort` và `RoomBus` dùng `BroadcastChannel` giữa các tab cùng máy. Mock chỉ chấp nhận `START_SHOT` từ participant có role `host` theo state giả lập. Mock không mô phỏng chữ ký, claim hoặc bảo đảm quyền của bản real.
 
 Adapter mock nhận thông báo khi state của room đổi để cập nhật role trong snapshot. Adapter real có thể dùng các event
 participant của LiveKit cho cùng subscription.

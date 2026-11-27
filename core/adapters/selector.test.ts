@@ -1,7 +1,12 @@
 import { expect, test, vi } from "vitest";
 import type { AdapterConfig } from "@/core/config";
 import type { MediaSource } from "@/core/contracts";
-import { createAdapterSelector, type RealtimeAdapters } from "./index";
+import {
+  createAdapterSelector,
+  createRealRealtime,
+  createWebcamMediaSource,
+  type RealtimeAdapters,
+} from "./index";
 
 const mockRealtime = { identity: "host", getHostIdentity: () => "host" };
 
@@ -12,6 +17,8 @@ function realFactories() {
       leave: vi.fn(),
       participants: vi.fn(() => []),
       onParticipantsChanged: vi.fn(() => () => {}),
+      remoteTracks: vi.fn(() => []),
+      onRemoteTracksChanged: vi.fn(() => () => {}),
       publishTrack: vi.fn(),
     },
     bus: { send: vi.fn(), on: vi.fn(() => () => {}) },
@@ -83,10 +90,13 @@ test("shares a realtime connection within each selector and isolates separate se
     await room.join({ roomId });
     expect(remote.room.participants()).toEqual([]);
     await remote.room.join({ roomId });
-    await host.getRealtime().bus.send({ type: "START_SHOT", payload: { round: 1, delayMs: 500 } });
+    await host.getRealtime().bus.send({
+      type: "START_SHOT",
+      payload: { sessionId: "session", requestId: "request", round: 1, delayMs: 500 },
+    });
     await vi.waitFor(() =>
       expect(received).toHaveBeenCalledExactlyOnceWith(
-        { round: 1, delayMs: 500 },
+        { sessionId: "session", requestId: "request", round: 1, delayMs: 500 },
         { identity: "host", role: "host" },
       ),
     );
@@ -94,6 +104,22 @@ test("shares a realtime connection within each selector and isolates separate se
     unsubscribe();
     await Promise.all([room.leave(), remote.room.leave()]);
   }
+});
+
+test("accepts the real realtime and webcam factories through the public entry point", () => {
+  const selector = createAdapterSelector(
+    { realtime: "real", media: "real" },
+    {
+      realRealtime: () =>
+        createRealRealtime({
+          getCredentials: async () => ({ url: "wss://example.test", token: "test" }),
+        }),
+      realMedia: createWebcamMediaSource,
+    },
+  );
+  expect(selector.getRealtime().room.join).toBeTypeOf("function");
+  expect(selector.getRealtime().bus.send).toBeTypeOf("function");
+  expect(selector.getMediaSource().getStream).toBeTypeOf("function");
 });
 
 test("reports missing real factories on demand without blocking the other mock adapter", () => {

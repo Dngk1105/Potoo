@@ -1,0 +1,94 @@
+-- Run with all pending migrations in one transaction, then roll back.
+insert into auth.users(id,email) values
+ ('dd441000-0000-4000-8000-000000000001','shot-host@example.invalid'),
+ ('dd441000-0000-4000-8000-000000000002','shot-member@example.invalid'),
+ ('dd441000-0000-4000-8000-000000000003','shot-other@example.invalid');
+do $$
+declare
+ h uuid := 'dd441000-0000-4000-8000-000000000001';
+ m uuid := 'dd441000-0000-4000-8000-000000000002';
+ x uuid := 'dd441000-0000-4000-8000-000000000003';
+ room uuid; ses uuid := gen_random_uuid(); ses2 uuid := gen_random_uuid(); req uuid := gen_random_uuid();
+ ev uuid; res jsonb; first_event jsonb; pin text;
+begin
+ select lpad(n::text,6,'0') into pin from generate_series(0,999999) n where not exists (select 1 from public.rooms r where r.pin=lpad(n::text,6,'0') and r.status <> 'ended') limit 1;
+ room := public.k405_create_room(h,pin);
+ insert into public.room_members(room_id,user_id) values(room,m);
+ insert into public.sessions(id,room_id,started_at) values(ses,room,clock_timestamp()),(ses2,room,clock_timestamp());
+ res := public.k407_issue_start_shot(h,room,ses,req,0,3000);
+ if res->>'code' <> 'CONFLICT' then raise exception 'unselected session: %',res; end if;
+ res := public.k407_select_shot_session(x,room,ses);
+ if res->>'code' <> 'FORBIDDEN' then raise exception 'non-host select: %',res; end if;
+ res := public.k407_select_shot_session(h,room,ses);
+ if res->>'code' <> 'OK' then raise exception 'select: %',res; end if;
+ first_event := public.k407_issue_start_shot(h,room,ses,req,0,3000);
+ if first_event->>'code' <> 'OK' or (first_event->>'expiresAt')::bigint-(first_event->>'issuedAt')::bigint <> 30000 then raise exception 'issue: %',first_event; end if;
+ ev := (first_event->>'eventId')::uuid;
+ res := public.k407_issue_start_shot(h,room,ses,req,0,3000);
+ if res <> first_event then raise exception 'idempotence: %',res; end if;
+ res := public.k407_issue_start_shot(h,room,ses,req,0,3001);
+ if res->>'code' <> 'CONFLICT' then raise exception 'request payload: %',res; end if;
+ res := public.k407_issue_start_shot(h,room,ses,gen_random_uuid(),0,3000);
+ if res->>'code' <> 'CONFLICT' then raise exception 'round uniqueness: %',res; end if;
+ res := public.k407_claim_start_shot(m,room,ev);
+ if res->>'code' <> 'OK' then raise exception 'claim: %',res; end if;
+ res := public.k407_claim_start_shot(m,room,ev);
+ if res->>'code' <> 'REPLAY' then raise exception 'replay: %',res; end if;
+ res := public.k407_claim_start_shot(x,room,ev);
+ if res->>'code' <> 'FORBIDDEN' then raise exception 'non-member: %',res; end if;
+ update public.rooms set host_id=m where id=room;
+ update public.rooms set host_id=h where id=room;
+ res := public.k407_claim_start_shot(h,room,ev);
+ if res->>'code' <> 'STALE' then raise exception 'host ABA: %',res; end if;
+ res := public.k407_issue_start_shot(h,room,ses,req,0,3000);
+ if res->>'code' <> 'STALE' then raise exception 'stale retry: %',res; end if;
+ first_event := public.k407_issue_start_shot(h,room,ses,gen_random_uuid(),1,3000); ev := (first_event->>'eventId')::uuid;
+ update public.room_members set kicked_at=clock_timestamp() where room_id=room and user_id=m;
+ update public.room_members set kicked_at=null where room_id=room and user_id=m;
+ res := public.k407_claim_start_shot(m,room,ev);
+ if res->>'code' <> 'STALE' then raise exception 'kick ABA: %',res; end if;
+ res := public.k407_issue_start_shot(h,room,ses,gen_random_uuid(),1,3000);
+ if res->>'code' <> 'OK' or (res->>'eventId')::uuid=ev then raise exception 'stale unclaimed round recovery: %',res; end if;
+ if public.k407_claim_start_shot(m,room,ev)->>'code' <> 'NOT_FOUND' then raise exception 'old event survived recovery'; end if;
+ first_event := public.k407_issue_start_shot(h,room,ses,gen_random_uuid(),2,3000); ev := (first_event->>'eventId')::uuid;
+ res := public.k407_select_shot_session(h,room,ses2);
+ res := public.k407_select_shot_session(h,room,ses);
+ res := public.k407_claim_start_shot(m,room,ev);
+ if res->>'code' <> 'STALE' then raise exception 'session ABA: %',res; end if;
+ first_event := public.k407_issue_start_shot(h,room,ses,gen_random_uuid(),3,3000); ev := (first_event->>'eventId')::uuid;
+ update public.sessions set started_at=null where id=ses;
+ update public.sessions set started_at=clock_timestamp() where id=ses;
+ res := public.k407_claim_start_shot(m,room,ev);
+ if res->>'code' <> 'STALE' then raise exception 'session mutation: %',res; end if;
+ res := public.k407_select_shot_session(h,room,ses);
+ first_event := public.k407_issue_start_shot(h,room,ses,gen_random_uuid(),4,3000); ev := (first_event->>'eventId')::uuid;
+ update public.rooms set status='locked' where id=room;
+ update public.rooms set status='open' where id=room;
+ if public.k407_claim_start_shot(m,room,ev)->>'code' <> 'STALE' then raise exception 'status ABA'; end if;
+ first_event := public.k407_issue_start_shot(h,room,ses,gen_random_uuid(),5,3000); ev := (first_event->>'eventId')::uuid;
+ update public.k407_shot_events set expires_ms=0 where id=ev;
+ if public.k407_claim_start_shot(m,room,ev)->>'code' <> 'EXPIRED' then raise exception 'expired claim'; end if;
+ res := public.k407_issue_start_shot(h,room,ses,(first_event->>'requestId')::uuid,5,3000);
+ if res->>'code' <> 'OK' or (res->>'eventId')::uuid=ev then raise exception 'expired unclaimed retry: %',res; end if;
+ first_event := public.k407_issue_start_shot(h,room,ses,gen_random_uuid(),6,3000); ev := (first_event->>'eventId')::uuid;
+ if public.k407_claim_start_shot(h,room,ev)->>'code' <> 'OK' then raise exception 'claim before expiry'; end if;
+ update public.k407_shot_events set expires_ms=0 where id=ev;
+ if public.k407_issue_start_shot(h,room,ses,(first_event->>'requestId')::uuid,6,3000)->>'code' <> 'EXPIRED' then raise exception 'claimed expired retry'; end if;
+ if public.k407_issue_start_shot(h,room,ses,gen_random_uuid(),6,3000)->>'code' <> 'CONFLICT' then raise exception 'claimed round reopened'; end if;
+ first_event := public.k407_issue_start_shot(h,room,ses,gen_random_uuid(),7,3000); ev := (first_event->>'eventId')::uuid;
+ req := gen_random_uuid();
+ if public.k407_claim_start_shot_v2(m,room,ev,req)->>'code' <> 'OK' then raise exception 'first claim v2'; end if;
+ if public.k407_claim_start_shot_v2(m,room,ev,req)->>'code' <> 'OK' then raise exception 'same claim retry'; end if;
+ if public.k407_claim_start_shot_v2(m,room,ev,gen_random_uuid())->>'code' <> 'REPLAY' then raise exception 'different claim replay'; end if;
+ update public.room_members set kicked_at=clock_timestamp() where room_id=room and user_id=m;
+ if public.k407_claim_start_shot_v2(m,room,ev,req)->>'code' <> 'STALE' then raise exception 'claim retry after kick'; end if;
+ update public.room_members set kicked_at=null where room_id=room and user_id=m;
+ res := public.k407_select_shot_session(h,room,null);
+ if res->>'code' <> 'OK' or res->'sessionId' <> 'null'::jsonb then raise exception 'clear: %',res; end if;
+ if public.k407_issue_start_shot(h,room,ses,gen_random_uuid(),4,-1)->>'code' <> 'INVALID_REQUEST' then raise exception 'invalid delay'; end if;
+ if exists (select 1 from unnest(array['anon','authenticated']) role_name cross join unnest(array['public.k407_select_shot_session(uuid,uuid,uuid)','public.k407_issue_start_shot(uuid,uuid,uuid,uuid,integer,integer)','public.k407_claim_start_shot(uuid,uuid,uuid)']) fn where has_function_privilege(role_name,fn,'execute'))
+    or exists (select 1 from unnest(array['public.k407_select_shot_session(uuid,uuid,uuid)','public.k407_issue_start_shot(uuid,uuid,uuid,uuid,integer,integer)','public.k407_claim_start_shot(uuid,uuid,uuid)']) fn where not has_function_privilege('service_role',fn,'execute')) then raise exception 'function permissions'; end if;
+ if has_function_privilege('authenticated','public.k407_claim_start_shot_v2(uuid,uuid,uuid,uuid)','execute') or not has_function_privilege('service_role','public.k407_claim_start_shot_v2(uuid,uuid,uuid,uuid)','execute') then raise exception 'claim v2 function permissions'; end if;
+ if has_table_privilege('authenticated','public.k407_shot_events','select') or has_table_privilege('service_role','public.k407_shot_events','insert') then raise exception 'table permissions'; end if;
+ if not (select bool_and(relrowsecurity) from pg_class where oid in ('public.k407_shot_state'::regclass,'public.k407_shot_events'::regclass,'public.k407_shot_claims'::regclass)) then raise exception 'RLS disabled'; end if;
+end $$;

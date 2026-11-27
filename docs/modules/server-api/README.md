@@ -1,6 +1,6 @@
 # Gói 4: Server API và adapter real
 
-Người phụ trách: Bảo; Phú làm K4-01, K4-04. Mã checklist: `K2-07`, `K4-01` đến `K4-08`.
+Người phụ trách: Bảo. Mã checklist: `K2-07`, `K4-01` đến `K4-08`.
 
 | | |
 |---|---|
@@ -25,7 +25,7 @@ Người phụ trách: Bảo; Phú làm K4-01, K4-04. Mã checklist: `K2-07`, `K
 | Kick: ghi `kicked_at`, gọi `RemoveParticipant` | `realtime.md` mục 3 |
 | Server không gửi `ROOM_CHANGED`; client vừa gọi lệnh thành công tự gửi qua `RoomBus` | `realtime.md` mục 3 |
 | Room dùng mock: Route Handler bỏ qua lời gọi LiveKit server API | `contracts.md` mục 2 |
-| Người nhận chỉ chấp nhận `START_SHOT` từ participant có role `host` | `realtime.md` mục 4 |
+| `START_SHOT` real phải được server xác minh chữ ký, state và claim; mock kiểm role giả lập | `realtime.md` mục 4 |
 | Strip mức `link` mở qua Route Handler kiểm tra `share_token`, trả signed URL | `permissions.md` mục 2 |
 | Key secret Supabase và `LIVEKIT_API_SECRET` chỉ dùng trong Route Handler | `environments.md` mục 5 |
 | `livekit-server --dev` ở local có cùng server API, gọi webhook về `localhost` được | `realtime.md` mục 3 |
